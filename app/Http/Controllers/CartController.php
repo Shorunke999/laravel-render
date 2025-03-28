@@ -130,51 +130,64 @@ class CartController extends Controller
     }
 
     /**
-     * Update cart item quantity
+     * Update cart item with variant management
      */
     public function updateCart(Request $request): JsonResponse
     {
         try {
-            $validatedData = $request->validate([
-                'cart_id' => 'required|exists:carts,id',
-                'quantity' => 'required|integer|min:1'
-            ]);
+            return DB::transaction(function () use ($request) {
+                $validatedData = $request->validate([
+                    'cart_id' => 'required|exists:carts,id',
+                    'quantity' => 'required|integer|min:1|max:100',
+                    'color_variant_id' => 'nullable|exists:artwork_color_variants,id',
+                    'size_variant_id' => 'nullable|exists:artwork_size_variants,id',
+                ]);
 
-            $cartItem = Cart::findOrFail($validatedData['cart_id']);
+                $cartItem = Cart::findOrFail($validatedData['cart_id']);
 
-            // Ensure the cart item belongs to the current user
-            if ($cartItem->user_id !== Auth::id()) {
+                // Ensure the cart item belongs to the current user
+                if ($cartItem->user_id !== Auth::id()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Unauthorized action'
+                    ], 403);
+                }
+
+                // Check stock availability
+                $artwork = $cartItem->artwork;
+                $this->checkStockAvailability($artwork, $validatedData);
+
+                // Update quantity
+                $cartItem->update([
+                    'quantity' => $validatedData['quantity']
+                ]);
+
+                // Manage color variant pivot
+                if ($validatedData['color_variant_id']) {
+                    $colorVariant = ArtworkColorVariant::findOrFail($validatedData['color_variant_id']);
+                    $cartItem->colorVariants()->sync([$colorVariant->id]);
+                } else {
+                    // Remove color variants if no color specified
+                    $cartItem->colorVariants()->detach();
+                }
+
+                // Manage size variant pivot
+                if ($validatedData['size_variant_id']) {
+                    $sizeVariant = ArtworkSizeVariant::findOrFail($validatedData['size_variant_id']);
+                    $cartItem->sizeVariants()->sync([$sizeVariant->id]);
+                } else {
+                    // Remove size variants if no size specified
+                    $cartItem->sizeVariants()->detach();
+                }
+
                 return response()->json([
-                    'status' => false,
-                    'message' => 'Unauthorized action'
-                ], 403);
-            }
+                    'status' => true,
+                    'message' => 'Cart updated successfully',
+                    'cart_item' => new CartResource($cartItem)
+                ]);
+            });
 
-            // Check stock availability
-            $artwork = $cartItem->artwork;
-            $this->checkStockAvailability($artwork, [
-                'artwork_id' => $artwork->id,
-                'quantity' => $validatedData['quantity']
-            ]);
-
-            // Update cart item
-            $cartItem->update([
-                'quantity' => $validatedData['quantity']
-            ]);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Cart updated successfully',
-                'cart_item' => new CartResource($cartItem)
-            ]);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => 'Error updating cart',
@@ -182,6 +195,7 @@ class CartController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove item from cart
