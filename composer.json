@@ -56,7 +56,11 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [],
+            "providers": [
+                "App\\Providers\\CartServiceProvider",
+                "App\\Providers\\PaymentServiceProvider"
+             ]
         }
     },
     "config": {
@@ -68,6 +72,8 @@
             "php-http/discovery": true
         }
     },
+
     "minimum-stability": "stable",
     "prefer-stable": true
 }
+

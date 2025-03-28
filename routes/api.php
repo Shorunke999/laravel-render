@@ -22,16 +22,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // Artwork Routes
     Route::get('/artworks', [ArtworkController::class, 'index']);
     Route::post('/artwork', [ArtworkController::class, 'store']);
-    //Route::get('/artworks/featured', [ArtworkController::class, 'featured']);
     Route::get('/artworks/search', [ArtworkController::class, 'search']);
     Route::get('/artworks/{artwork}', [ArtworkController::class, 'show']);
 
-    //cart
-    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
-    Route::get('/cart', [CartController::class, 'viewCart'])->name('cart.view');
-    Route::put('/cart/update', [CartController::class, 'updateCart'])->name('cart.update');
-    Route::delete('/cart/remove/{cartId}', [CartController::class, 'removeFromCart'])->name('cart.remove');
-    Route::delete('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
+    // Get cart contents
+    Route::get('/cart', [CartController::class, 'viewCart']);
+    // Add item to cart
+    Route::post('/cart', [CartController::class, 'addToCart']);
+    // Update cart item
+    Route::put('/cart/{cartItem}', [CartController::class, 'updateCart']);
+    // Remove item from cart
+    Route::delete('/cart/{cartItem}', [CartController::class, 'removeFromCart']);
+    // Clear entire cart
+    Route::delete('/cart', [CartController::class, 'clearCart']);
+
 
     // Review Routes
     Route::get('/artworks/{artwork}/reviews', [ReviewController::class, 'artworkReviews']);

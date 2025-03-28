@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('cart_size_variant', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cart_id')->constrained()->onDelete('cascade')->index();
-            $table->foreignId('size_variant_id')->constrained('artwork_size_variants')->onDelete('cascade')->index();
+            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
+            $table->foreignId('size_variant_id')->constrained('artwork_size_variants')->onDelete('cascade');
             $table->timestamps();
         });
     }

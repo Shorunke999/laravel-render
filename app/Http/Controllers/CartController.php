@@ -3,20 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CartResource;
-use App\Models\Cart;
-use App\Models\Artwork;
-use App\Models\ArtworkColorVariant;
-use App\Models\ArtworkSizeVariant;
+use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\ValidationException;
-use Exception;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
+    protected CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
 
     /**
      * Add item to cart
@@ -24,7 +22,6 @@ class CartController extends Controller
     public function addToCart(Request $request): JsonResponse
     {
         try {
-            // Validate the request
             $validatedData = $request->validate([
                 'artwork_id' => 'required|exists:artworks,id',
                 'quantity' => 'integer|min:1|max:100',
@@ -32,66 +29,20 @@ class CartController extends Controller
                 'size_variant_id' => 'nullable|exists:artwork_size_variants,id',
             ]);
 
-            return DB::transaction(function () use ($validatedData) {
-                $user = Auth::user();
-                $artwork = Artwork::findOrFail($validatedData['artwork_id']);
+            $cartItem = $this->cartService->addItem($validatedData);
+            $cartItems = $this->cartService->getCartItems();
 
-                // Check stock availability
-                $this->checkStockAvailability($artwork, $validatedData);
-
-                // Find existing cart item
-                $cartItem = Cart::where('user_id', $user->id)
-                    ->where('artwork_id', $validatedData['artwork_id'])
-                    ->when($validatedData['color_variant_id'], function ($query) use ($validatedData) {
-                        return $query->where('color_variant_id', $validatedData['color_variant_id']);
-                    })
-                    ->when($validatedData['size_variant_id'], function ($query) use ($validatedData) {
-                        return $query->where('size_variant_id', $validatedData['size_variant_id']);
-                    })
-                    ->first();
-
-                if ($cartItem) {
-                    // Update quantity
-                    $newQuantity = $cartItem->quantity + $validatedData['quantity'];
-                    $this->checkStockAvailability($artwork, array_merge($validatedData, ['quantity' => $newQuantity]));
-
-                    $cartItem->update([
-                        'quantity' => $newQuantity
-                    ]);
-                } else {
-                    // Create new cart item
-                    $cartItem = Cart::create([
-                        'user_id' => $user->id,
-                        'artwork_id' => $validatedData['artwork_id'],
-                        'quantity' => $validatedData['quantity'],
-                    ]);
-                }
-
-                // Manage color variant pivot
-                if ($validatedData['color_variant_id']) {
-                    $colorVariant = ArtworkColorVariant::findOrFail($validatedData['color_variant_id']);
-                    $cartItem->colorVariants()->syncWithoutDetaching([$colorVariant->id]);
-                }
-
-                // Manage size variant pivot
-                if ($validatedData['size_variant_id']) {
-                    $sizeVariant = ArtworkSizeVariant::findOrFail($validatedData['size_variant_id']);
-                    $cartItem->sizeVariants()->syncWithoutDetaching([$sizeVariant->id]);
-                }
-
-                return response()->json([
-                    'status' => true,
-                    'message' => "Item added to cart successfully",
-                    'cart_item' => new CartResource($cartItem),
-
-                ], 201);
-            });
+            return response()->json([
+                'status' => true,
+                'message' => "Item added to cart successfully",
+                'cart_item' => new CartResource($cartItem),
+                'cart_count' => $cartItems->count()
+            ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage(),
-                'error' => $e->getTraceAsString()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -99,103 +50,53 @@ class CartController extends Controller
     /**
      * View cart
      */
-    public function viewCart()
+    public function viewCart(): JsonResponse
     {
         try {
-            $cacheKey = 'user_cart_' . Auth::id();
-
-            $cartItems = Cache::remember($cacheKey, now()->addMinutes(10), function () {
-                return Cart::where('user_id', Auth::id())
-                    ->with(['artwork', 'colorVariants', 'sizeVariants'])
-                    ->get();
-            });
-
-            $total = $cartItems->sum(function ($item) {
-                return $item->calculateTotalPrice();
-            });
+            $cartItems = $this->cartService->getCartItems();
 
             return response()->json([
                 'cart_items' => CartResource::collection($cartItems),
-                'total_cart_price' => $total,
+                'total_cart_price' => $this->cartService->calculateTotalPrice(),
                 'cart_count' => $cartItems->count()
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error retrieving cart',
-                'error' => $e->getMessage()
+                'message' => 'Error retrieving cart'
             ], 500);
         }
     }
 
     /**
-     * Update cart item with variant management
+     * Update cart item
      */
     public function updateCart(Request $request): JsonResponse
     {
         try {
-            return DB::transaction(function () use ($request) {
-                $validatedData = $request->validate([
-                    'cart_id' => 'required|exists:carts,id',
-                    'quantity' => 'required|integer|min:1|max:100',
-                    'color_variant_id' => 'nullable|exists:artwork_color_variants,id',
-                    'size_variant_id' => 'nullable|exists:artwork_size_variants,id',
-                ]);
+            $validatedData = $request->validate([
+                'cart_id' => 'required|exists:carts,id',
+                'quantity' => 'required|integer|min:1|max:100',
+                'color_variant_id' => 'nullable|exists:artwork_color_variants,id',
+                'size_variant_id' => 'nullable|exists:artwork_size_variants,id',
+            ]);
 
-                $cartItem = Cart::findOrFail($validatedData['cart_id']);
+            $cartItem = $this->cartService->updateItem($validatedData);
 
-                // Ensure the cart item belongs to the current user
-                if ($cartItem->user_id !== Auth::id()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Unauthorized action'
-                    ], 403);
-                }
-
-                // Check stock availability
-                $artwork = $cartItem->artwork;
-                $this->checkStockAvailability($artwork, $validatedData);
-
-                // Update quantity
-                $cartItem->update([
-                    'quantity' => $validatedData['quantity']
-                ]);
-
-                // Manage color variant pivot
-                if ($validatedData['color_variant_id']) {
-                    $colorVariant = ArtworkColorVariant::findOrFail($validatedData['color_variant_id']);
-                    $cartItem->colorVariants()->sync([$colorVariant->id]);
-                } else {
-                    // Remove color variants if no color specified
-                    $cartItem->colorVariants()->detach();
-                }
-
-                // Manage size variant pivot
-                if ($validatedData['size_variant_id']) {
-                    $sizeVariant = ArtworkSizeVariant::findOrFail($validatedData['size_variant_id']);
-                    $cartItem->sizeVariants()->sync([$sizeVariant->id]);
-                } else {
-                    // Remove size variants if no size specified
-                    $cartItem->sizeVariants()->detach();
-                }
-
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Cart updated successfully',
-                    'cart_item' => new CartResource($cartItem)
-                ]);
-            });
+            return response()->json([
+                'status' => true,
+                'message' => 'Cart updated successfully',
+                'cart_item' => new CartResource($cartItem)
+            ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error updating cart',
-                'error' => $e->getMessage()
+                'message' => 'Error updating cart'
             ], 500);
         }
     }
-
 
     /**
      * Remove item from cart
@@ -203,28 +104,19 @@ class CartController extends Controller
     public function removeFromCart($cartId): JsonResponse
     {
         try {
-            $cartItem = Cart::findOrFail($cartId);
-
-            // Ensure the cart item belongs to the current user
-            if ($cartItem->user_id !== Auth::id()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Unauthorized action'
-                ], 403);
-            }
-
-            $cartItem->delete();
+            $this->cartService->removeItem($cartId);
+            $cartItems = $this->cartService->getCartItems();
 
             return response()->json([
                 'status' => true,
-                'message' => 'Item removed from cart'
+                'message' => 'Item removed from cart',
+                'cart_count' => $cartItems->count()
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error removing item from cart',
-                'error' => $e->getMessage()
+                'message' => 'Error removing item from cart'
             ], 500);
         }
     }
@@ -235,56 +127,20 @@ class CartController extends Controller
     public function clearCart(): JsonResponse
     {
         try {
-            $cartItemsCount = Cart::where('user_id', Auth::id())->count();
-            Cart::where('user_id', Auth::id())->delete();
+            $itemsRemoved = $this->cartService->clearCart();
 
             return response()->json([
                 'status' => true,
                 'message' => 'Cart cleared successfully',
-                'items_removed' => $cartItemsCount
+                'items_removed' => $itemsRemoved,
+                'cart_count' => 0
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error clearing cart',
-                'error' => $e->getMessage()
+                'message' => 'Error clearing cart'
             ], 500);
-        }
-    }
-
-    /**
-     * Check stock availability
-     */
-    private function checkStockAvailability(Artwork $artwork, array $data): void
-    {
-        $requestedQuantity = $data['quantity'];
-
-        // Check base artwork stock
-        if ($requestedQuantity > $artwork->stock) {
-            throw new \Exception("Insufficient stock for {$artwork->name}. Available: {$artwork->stock}");
-        }
-
-        // Check color variant stock if specified
-        if (isset($data['color_variant_id'])) {
-            $colorVariant = $artwork->colorVariants
-                ->firstWhere('id', $data['color_variant_id']);
-
-            if (!$colorVariant || $requestedQuantity > $colorVariant->stock) {
-                throw new \Exception("Insufficient stock for selected color variant. Available: " .
-                    ($colorVariant ? $colorVariant->stock : 0));
-            }
-        }
-
-        // Check size variant stock if specified
-        if (isset($data['size_variant_id'])) {
-            $sizeVariant = $artwork->sizeVariants
-                ->firstWhere('id', $data['size_variant_id']);
-
-            if (!$sizeVariant || $requestedQuantity > $sizeVariant->stock) {
-                throw new \Exception("Insufficient stock for selected size variant. Available: " .
-                    ($sizeVariant ? $sizeVariant->stock : 0));
-            }
         }
     }
 }

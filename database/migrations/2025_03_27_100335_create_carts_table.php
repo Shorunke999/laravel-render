@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             $table->unsignedBigInteger('color_variant_id');
             $table->unsignedBigInteger('size_variant_id');
-            $table->unsignedBigInteger('artwork_id');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
