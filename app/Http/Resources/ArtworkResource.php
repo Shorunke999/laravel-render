@@ -17,16 +17,24 @@ class ArtworkResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'category' => new CategoryResource($this->whenLoaded('category')),
+            'category' => $this->whenLoaded('category', function () {
+                return new CategoryResource($this->category);
+            }),
             'artist' => $this->artist,
             'size' => $this->size,
             'weight' => $this->weight,
             'price' => $this->price,
             'description' => $this->description,
-            'image' => ArtworkimageResource::collection($this->whenLoaded('images')),
+            'images' => $this->whenLoaded('images', function () {
+                return ArtworkimageResource::collection($this->images);
+            }),
             'stock' => $this->stock,
-            'color_variants' => ArtworkColorVariantResource::collection($this->whenLoaded('colorVariants')),
-            'size_variants' => ArtworkSizeVariantResource::collection($this->whenLoaded('sizeVariants')),
+            'color_variants' => $this->whenLoaded('colorVariants', function () {
+                return ArtworkColorVariantResource::collection($this->colorVariants);
+            }),
+            'size_variants' => $this->whenLoaded('sizeVariants', function () {
+                return ArtworkSizeVariantResource::collection($this->sizeVariants);
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'average_rating' => $this->whenLoaded('reviews', function () {

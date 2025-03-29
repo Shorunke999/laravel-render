@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('artworks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('artist')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->decimal('base_price', 10, 2);
             $table->text('description')->nullable();

@@ -1,27 +1,47 @@
 <?php
 
 use App\Http\Controllers\ArtworkController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Payment\PaystackController;
 use App\Http\Controllers\ReviewController;
-use Illuminate\Http\Request;
+use App\Http\Middleware\CheckAdmin;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/login', [AuthController::class, 'Unauthorized'])->name('login');
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login', [AuthController::class, 'login']);
 
+    // Optional: Email Verification Routes
+    // Route::get('verify-email/{token}', [AuthController::class, 'verifyEmail']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+     // Get authenticated user
+    Route::get('me', [AuthController::class, 'me']);
+    Route::post('log-out', [AuthController::class, 'logout']);
     //Category Routes
 
+    Route::middleware([CheckAdmin::class])->group(function () {
+
+        //Categories actions for Admin only
+        Route::post('/categories', [CategoryController::class, 'store']); // Create a new category
+        Route::get('/categories/{category}', [CategoryController::class, 'show']); // Get a single category
+        Route::put('/categories/{category}', [CategoryController::class, 'update']); // Update a category
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']); // Delete a category
+
+        //Artwork actions for Admin only
+        Route::post('/artwork', [ArtworkController::class, 'store']);
+        Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
+        Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
+    });
+
     Route::get('/categories', [CategoryController::class, 'index']);  // List all categories
-    Route::post('/categories', [CategoryController::class, 'store']); // Create a new category
-    Route::get('/categories/{category}', [CategoryController::class, 'show']); // Get a single category
-    Route::put('/categories/{category}', [CategoryController::class, 'update']); // Update a category
-    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']); // Delete a category
 
     // Artwork Routes
     Route::get('/artworks', [ArtworkController::class, 'index']);
-    Route::post('/artwork', [ArtworkController::class, 'store']);
     Route::get('/artworks/search', [ArtworkController::class, 'search']);
     Route::get('/artworks/{artwork}', [ArtworkController::class, 'show']);
 

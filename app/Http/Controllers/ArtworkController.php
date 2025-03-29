@@ -64,12 +64,14 @@ class ArtworkController extends Controller
             }
 
             // Include relationships
-            $query->with(['category','images']);
+            $query->with(['category','images','colorVariants','sizeVariants']);
 
             // Pagination
             $artworks = $query->paginate($request->input('per_page', 12));
 
-            return response()->json(ArtworkResource::collection($artworks));
+            return response()->json([
+                'artworks'=>ArtworkResource::collection($artworks)
+            ],200);
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Error retrieving artworks',
@@ -84,8 +86,34 @@ class ArtworkController extends Controller
     public function store(StoreArtworkRequest $request): JsonResponse
     {
         try {
-            // Validate the request using form request validation
             $validatedData = $request->validated();
+
+            // Calculate total variant stocks
+            $totalVariantStock = 0;
+
+            // Sum color variant stocks if present
+            if ($request->has('color_variants')) {
+                foreach ($request->color_variants as $variant) {
+                    $totalVariantStock += $variant['stock'];
+                }
+            }
+
+            // Sum size variant stocks if present
+            if ($request->has('size_variants')) {
+                foreach ($request->size_variants as $variant) {
+                    $totalVariantStock += $variant['stock'];
+                }
+            }
+
+            // If variants exist, validate stock matches
+            if (($request->has('color_variants') || $request->has('size_variants')) &&
+                $validatedData['stock'] != $totalVariantStock) {
+                throw ValidationException::withMessages([
+                    'stock' => 'The total artwork stock must equal the sum of all variant stocks.'
+                ]);
+            }
+
+            // Create artwork
             $artwork = Artwork::create($validatedData);
 
             // Handle image upload if present
@@ -95,6 +123,7 @@ class ArtworkController extends Controller
                     $artwork->images()->create(['image_url' => Storage::url($path)]);
                 }
             }
+
             // Handle color variants
             if ($request->has('color_variants')) {
                 foreach ($request->color_variants as $variant) {
@@ -109,10 +138,11 @@ class ArtworkController extends Controller
                 }
             }
 
-            return response()->json(
-                new ArtworkResource($artwork->load(['category','images'])),
-                201
-            );
+            return response()->json([
+                'message' => 'Artwork created successfully',
+                'artwork' => new ArtworkResource($artwork->load(['category','images','colorVariants','sizeVariants'])),
+            ], 201);
+
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',
@@ -202,8 +232,10 @@ class ArtworkController extends Controller
                 }
             }
 
-            return response()->json(
-                new ArtworkResource($artwork->load(['colorVariants', 'sizeVariants','images']))
+            return response()->json([
+                'message' => 'Artwork Updated Successfully',
+                'artwork' =>  new ArtworkResource($artwork->load(['colorVariants', 'sizeVariants','images']))]
+
             );
         } catch (ValidationException $e) {
             return response()->json([
@@ -238,18 +270,29 @@ class ArtworkController extends Controller
                 ], 400);
             }
 
-            $artworks = Artwork::where('title', 'like', "%{$query}%")
-                ->orWhere('artist_name', 'like', "%{$query}%")
+            $artworks = Artwork::where('name', 'like', "%{$query}%")
+                ->orWhere('artist', 'like', "%{$query}%")
                 ->orWhere('description', 'like', "%{$query}%")
                 ->with('category')
                 ->paginate(12);
 
-            return response()->json(ArtworkResource::collection($artworks));
+            return response()->json([
+                'artwork' => ArtworkResource::collection($artworks)
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Error searching artworks',
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function destroy(Artwork $artwork)
+    {
+        $artworkName = $artwork->name;
+        $artwork->delete();
+        return response()->json([
+            'message' => $artworkName . " Artwork has been deleted successfully"
+        ]);
     }
 }

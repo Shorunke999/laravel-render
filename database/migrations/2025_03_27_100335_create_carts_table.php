@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('artwork_id');
             $table->integer('quantity')->default(1);
-            $table->unsignedBigInteger('color_variant_id');
-            $table->unsignedBigInteger('size_variant_id');
+            $table->unsignedBigInteger('color_variant_id')->nullable();
+            $table->unsignedBigInteger('size_variant_id')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

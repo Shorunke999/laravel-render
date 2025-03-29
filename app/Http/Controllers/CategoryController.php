@@ -47,7 +47,10 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
-        return response()->json(new CategoryResource($category), 201);
+        return response()->json([
+            'message'=>"Category created successfully",
+            'category'=>new CategoryResource($category)
+        ], 201);
         }catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',
@@ -66,7 +69,9 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        return response()->json(new CategoryResource($category->load('artworks.images')));
+        return response()->json([
+            'category' =>new CategoryResource($category->load(['artworks','artworks.images']))
+        ]);
     }
 
 
@@ -100,7 +105,10 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return response()->json(new CategoryResource($category),200);
+        return response()->json([
+            'message' => "Category updated successfully",
+            'category' => new CategoryResource($category)
+        ],200);
         }catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',

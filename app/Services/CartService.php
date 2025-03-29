@@ -37,18 +37,17 @@ class CartService
                 'color_variant_id' => $data['color_variant_id'] ?? null,
                 'size_variant_id' => $data['size_variant_id'] ?? null,
             ]);
-
             if ($cartItem->exists) {
                 $newQuantity = $cartItem->quantity + $data['quantity'];
                 $this->checkStockAvailability($artwork, array_merge($data, ['quantity' => $newQuantity]));
                 $cartItem->quantity = $newQuantity;
+
             } else {
                 $cartItem->quantity = $data['quantity'];
             }
 
             $cartItem->save();
             $this->clearCache();
-
             return $cartItem->load(['artwork', 'colorVariants', 'sizeVariants']);
         });
     }
@@ -62,8 +61,8 @@ class CartService
             return Cart::where('user_id', Auth::id())
                 ->with([
                     'artwork',
-                    'colorVariants' => fn($q) => $q->select('id', 'name','color', 'stock', 'price_increment'),
-                    'sizeVariants' => fn($q) => $q->select('id', 'name','size', 'stock', 'price_increment')
+                    'colorVariants',
+                    'sizeVariants'
                 ])
                 ->get();
         });
