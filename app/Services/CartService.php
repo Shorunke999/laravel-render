@@ -20,14 +20,10 @@ class CartService
         $this->cacheKey = 'user_cart_' . (Auth::id() ?? 0);
     }
 
-    /**
-     * Add item to cart
-     */
     public function addItem(array $data): Cart
     {
         return DB::transaction(function () use ($data) {
-            $artwork = Artwork::with(['colorVariants', 'sizeVariants'])
-                ->findOrFail($data['artwork_id']);
+            $artwork = Artwork::findOrFail($data['artwork_id']);
 
             $this->checkStockAvailability($artwork, $data);
 
@@ -37,32 +33,30 @@ class CartService
                 'color_variant_id' => $data['color_variant_id'] ?? null,
                 'size_variant_id' => $data['size_variant_id'] ?? null,
             ]);
+
             if ($cartItem->exists) {
                 $newQuantity = $cartItem->quantity + $data['quantity'];
                 $this->checkStockAvailability($artwork, array_merge($data, ['quantity' => $newQuantity]));
                 $cartItem->quantity = $newQuantity;
-
             } else {
                 $cartItem->quantity = $data['quantity'];
             }
 
             $cartItem->save();
             $this->clearCache();
-            return $cartItem->load(['artwork', 'colorVariants', 'sizeVariants']);
+
+            return $cartItem->load(['artwork', 'colorVariant', 'sizeVariant']);
         });
     }
 
-    /**
-     * Get cart items
-     */
     public function getCartItems()
     {
         return Cache::remember($this->cacheKey, now()->addMinutes(10), function () {
             return Cart::where('user_id', Auth::id())
                 ->with([
                     'artwork',
-                    'colorVariants',
-                    'sizeVariants'
+                    'colorVariant',
+                    'sizeVariant'
                 ])
                 ->get();
         });
@@ -89,7 +83,7 @@ class CartService
 
             $this->clearCache();
 
-            return $cartItem->load(['artwork', 'colorVariants', 'sizeVariants']);
+            return $cartItem->load(['artwork', 'colorVariant', 'sizeVariant']);
         });
     }
 
@@ -143,17 +137,21 @@ class CartService
         if (isset($data['color_variant_id'])) {
             $colorVariant = $artwork->colorVariants
                 ->firstWhere('id', $data['color_variant_id']);
-
-            if (!$colorVariant || $requestedQuantity > $colorVariant->stock) {
+            if (!$colorVariant) {
+                throw new Exception("Invalid artwork variant, pls check the variant id ");
+            }
+            if ($requestedQuantity > $colorVariant->stock) {
                 throw new Exception("Insufficient stock for selected color variant. Available: " .
                     ($colorVariant ? $colorVariant->stock : 0));
             }
         }
 
         if (isset($data['size_variant_id'])) {
-            $sizeVariant = $artwork->sizeVariants
-                ->firstWhere('id', $data['size_variant_id']);
-
+            $sizeVariant = $artwork->sizeVariants->firstWhere('id', $data['size_variant_id']);
+                //dd($sizeVariant);
+            if (!$sizeVariant) {
+                throw new Exception("Invalid artwork variant, pls check the variant id ");
+            }
             if (!$sizeVariant || $requestedQuantity > $sizeVariant->stock) {
                 throw new Exception("Insufficient stock for selected size variant. Available: " .
                     ($sizeVariant ? $sizeVariant->stock : 0));

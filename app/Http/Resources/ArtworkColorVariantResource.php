@@ -19,7 +19,6 @@ class ArtworkColorVariantResource extends JsonResource
             'color' => $this->color,
             'price_increment' => $this->price_increment,
             'final_price' => $this->final_price,
-            'stock' => $this->stock,
         ];
     }
 }

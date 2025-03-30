@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('size');
             $table->decimal('price_increment', 10, 2); // Added price increment
             $table->integer('stock')->default(0);
+
             $table->timestamps();
 
         });

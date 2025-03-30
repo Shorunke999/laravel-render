@@ -35,7 +35,7 @@ class CartController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => "Item added to cart successfully",
-                'cart_item' => new CartResource($cartItem),
+                'cart' =>  CartResource::collection($cartItems),
                 'cart_count' => $cartItems->count()
             ], 201);
 
@@ -56,7 +56,7 @@ class CartController extends Controller
             $cartItems = $this->cartService->getCartItems();
 
             return response()->json([
-                'cart_items' => CartResource::collection($cartItems),
+                'cart' => CartResource::collection($cartItems),
                 'total_cart_price' => $this->cartService->calculateTotalPrice(),
                 'cart_count' => $cartItems->count()
             ]);
@@ -83,17 +83,17 @@ class CartController extends Controller
             ]);
 
             $cartItem = $this->cartService->updateItem($validatedData);
-
+            $cartItems = $this->cartService->getCartItems();
             return response()->json([
                 'status' => true,
                 'message' => 'Cart updated successfully',
-                'cart_item' => new CartResource($cartItem)
-            ]);
+                'cart' => CartResource::collection($cartItems),
+            ],200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error updating cart'
+                'message' => 'Error updating cart ' . $e->getMessage()
             ], 500);
         }
     }
@@ -106,11 +106,10 @@ class CartController extends Controller
         try {
             $this->cartService->removeItem($cartId);
             $cartItems = $this->cartService->getCartItems();
-
             return response()->json([
                 'status' => true,
                 'message' => 'Item removed from cart',
-                'cart_count' => $cartItems->count()
+                'cart' => CartResource::collection($cartItems)
             ]);
 
         } catch (\Exception $e) {
@@ -132,8 +131,7 @@ class CartController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Cart cleared successfully',
-                'items_removed' => $itemsRemoved,
-                'cart_count' => 0
+                'cart_items_removed' => $itemsRemoved,
             ]);
 
         } catch (\Exception $e) {

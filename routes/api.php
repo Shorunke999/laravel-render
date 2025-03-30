@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Add item to cart
     Route::post('/cart', [CartController::class, 'addToCart']);
     // Update cart item
-    Route::put('/cart/{cartItem}', [CartController::class, 'updateCart']);
+    Route::put('/cart', [CartController::class, 'updateCart']);
     // Remove item from cart
     Route::delete('/cart/{cartItem}', [CartController::class, 'removeFromCart']);
     // Clear entire cart

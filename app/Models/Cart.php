@@ -14,7 +14,6 @@ class Cart extends Model
         'size_variant_id'
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -25,27 +24,24 @@ class Cart extends Model
         return $this->belongsTo(Artwork::class);
     }
 
-    public function colorVariants()
+    // Change to belongsTo since each cart item has one variant
+    public function colorVariant()
     {
-        return $this->belongsToMany(ArtworkColorVariant::class, 'cart_color_variant', 'cart_id', 'color_variant_id');
+        return $this->belongsTo(ArtworkColorVariant::class);
     }
 
-    public function sizeVariants()
+    // Change to belongsTo since each cart item has one variant
+    public function sizeVariant()
     {
-        return $this->belongsToMany(ArtworkSizeVariant::class, 'cart_size_variant', 'cart_id', 'size_variant_id');
+        return $this->belongsTo(ArtworkSizeVariant::class);
     }
-      /**
-     * Calculate the total price for this cart item
-     */
+
     public function calculateTotalPrice(): float
     {
         $basePrice = $this->artwork->base_price;
+        $colorIncrement = $this->colorVariant->price_increment ?? 0;
+        $sizeIncrement = $this->sizeVariant->price_increment ?? 0;
 
-        $colorVariantIncrement = $this->colorVariants->sum('price_increment');
-        $sizeVariantIncrement = $this->sizeVariants->sum('price_increment');
-
-        $itemPrice = $basePrice + $colorVariantIncrement + $sizeVariantIncrement;
-
-        return $itemPrice * $this->quantity;
+        return ($basePrice + $colorIncrement + $sizeIncrement) * $this->quantity;
     }
 }

@@ -21,9 +21,7 @@ class ArtworkResource extends JsonResource
                 return new CategoryResource($this->category);
             }),
             'artist' => $this->artist,
-            'size' => $this->size,
-            'weight' => $this->weight,
-            'price' => $this->price,
+            'base_price' => $this->base_price,
             'description' => $this->description,
             'images' => $this->whenLoaded('images', function () {
                 return ArtworkimageResource::collection($this->images);

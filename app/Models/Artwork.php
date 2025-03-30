@@ -9,7 +9,7 @@ class Artwork extends Model
 {
     /** @use HasFactory<\Database\Factories\ArtworkFactory> */
     use HasFactory;
-    protected $fillable = ['name', 'category_id', 'artist','base_price', 'description', 'stock'];
+    protected $fillable = ['name', 'category_id', 'artist','base_price', 'description', 'stock','cart_stock'];
 
     public function category()
     {
