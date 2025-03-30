@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('artwork_id')->references('id')->on('artworks')->onDelete('cascade');
+            $table->foreign('artwork_id')->references('id')->on('artworks')->onDelete('restrict');
             $table->foreign('color_variant_id')->references('id')->on('artwork_color_variants')->onDelete('cascade');
             $table->foreign('size_variant_id')->references('id')->on('artwork_size_variants')->onDelete('cascade');
 

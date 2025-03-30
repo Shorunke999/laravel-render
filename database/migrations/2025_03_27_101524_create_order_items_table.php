@@ -17,9 +17,8 @@ return new class extends Migration
             $table->foreignId('artwork_id')->constrained()->onDelete('cascade');
             $table->unsignedBigInteger('color_variant_id')->nullable();
             $table->unsignedBigInteger('size_variant_id')->nullable();
-            $table->integer('quantity');
             $table->decimal('price', 10, 2);
-            $table->string('selected_size')->nullable();
+            $table->integer('quantity');
             $table->timestamps();
 
             $table->foreign('color_variant_id')->references('id')->on('artwork_color_variants')->onDelete('cascade');
