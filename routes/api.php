@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //Category Routes
 
     Route::middleware([CheckAdmin::class])->group(function () {
-
+        /*
         //Categories actions for Admin only
         Route::post('/categories', [CategoryController::class, 'store']); // Create a new category
         Route::get('/categories/{category}', [CategoryController::class, 'show']); // Get a single category
@@ -35,8 +35,21 @@ Route::middleware('auth:sanctum')->group(function () {
         //Artwork actions for Admin only
         Route::post('/artwork', [ArtworkController::class, 'store']);
         Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
-        Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
+        Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);*/
     });
+
+    //for testing
+
+     //Categories actions for Admin only
+     Route::post('/categories', [CategoryController::class, 'store']); // Create a new category
+     Route::get('/categories/{category}', [CategoryController::class, 'show']); // Get a single category
+     Route::put('/categories/{category}', [CategoryController::class, 'update']); // Update a category
+     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']); // Delete a category
+
+     //Artwork actions for Admin only
+     Route::post('/artwork', [ArtworkController::class, 'store']);
+     Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
+     Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
 
     Route::get('/categories', [CategoryController::class, 'index']);  // List all categories
 
