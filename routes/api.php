@@ -70,7 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
 
-});
+    //payment
+    Route::post('/paystack/payment',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
 
-Route::post('/paystack/payment',[PaystackController::class, 'initiateTransaction']);
+});
 Route::post('/webhook/verify',[PaystackController::class, 'processWebhook']);

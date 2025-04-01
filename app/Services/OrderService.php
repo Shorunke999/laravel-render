@@ -41,8 +41,7 @@ class OrderService
                 'status' => 'pending',
                 'total_amount' => 0,
                 'shipping_address' => $orderData['shipping_address'],
-                'billing_address' => $orderData['billing_address'],
-                'payment_method' => $orderData['payment_method']
+                'email' => $orderData['email'],
             ]);
 
             $cartItems = Cart::with('artwork')->where('user_id', Auth::id())->get();

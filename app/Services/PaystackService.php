@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PaystackService
 {
@@ -19,18 +21,24 @@ class PaystackService
 
     }
 
-    public function intializePayment(string $email, string $amount)
+    public function intializePayment(string $email, Order $order)
     {
+        $uniqueRef = 'Tiimbooktu_' . Str::random(12);
+
+        $order->update([
+            'reference_code'=>$uniqueRef
+        ]);
+
         $response = Http::withHeaders([
             'Authorization' => $this->secretKey,
             'Content-Type' => 'application/json'
         ])->post($this->baseUrl.'transaction/initialize',[
             'email'=>$email,
-            'amount' => $amount * 100,
+            'amount' => $order->total_amount * 100,
+            'reference' =>$uniqueRef,
             'callback_url' => $this->callbackUrl,
-            //'authorization_code' => $authorizationCode
-
         ]);
+
         return $response->json();
     }
 
@@ -62,26 +70,15 @@ class PaystackService
 
         if ($request->event == 'charge.success')
         {
-            //save data to db
-                //db fields ---service type(paystack),event(charge.success),customerid,payload-json
-            return response([
+            $order = Order::where('reference_code',$request->data->reference)
+            ->first();
+            $order->update([
+                'payment_status' => 'success',
+                'status' => 'processing'
+            ]);
+           return response([
                 'status'=>true,
             ],200)->json();
         }
-    }
-
-    public function chargeAuthorization(string $email, string $amount)
-    {
-        //get from db authorization code.
-        $authorizationCode = '';
-        $response = Http::withHeaders([
-            'Authorization' => $this->secretKey,
-            'Content-Type' => 'application/json'
-        ])->post($this->baseUrl.'transaction/charge_authorization',[
-            'email'=>$email,
-            'amount' => $amount * 100,
-            'authorization_code' => $authorizationCode
-        ]);
-        return $response->json();
     }
 }

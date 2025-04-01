@@ -8,6 +8,7 @@ use App\Services\OrderService;
 use App\Exceptions\InsufficientStockException;
 use App\Exceptions\OrderProcessingException;
 use App\Models\Order;
+use App\Services\PaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,16 +42,17 @@ class OrderController extends Controller
     {
         $validatedData = $request->validate([
             'shipping_address' => 'required|array',
-            'billing_address' => 'required|array',
-            'payment_method' => 'required|string'
+            'email' => 'required|string',
         ]);
 
         try {
             $order = $this->orderService->createOrder($validatedData);
+            $paystackPayment = new PaystackService();
+            $initializePayment = $paystackPayment->intializePayment($validatedData['email'],$order);
             return response()->json([
                 'message' => 'Order created successfully',
                 'order_id' => $order->id,
-                'payment_redirect' => route('payment.process', $order->id)
+                'authorization_url' => $initializePayment['data']['authorization_url']
             ], 201);
         } catch (\Exception $e) {
             return response()->json([

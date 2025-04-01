@@ -14,9 +14,8 @@ class Order extends Model
         'total_amount',
         'status',
         'shipping_address',
-        'billing_address',
-        'payment_method',
-        'payment_status'
+        'payment_status',
+        'reference_code'
     ];
 
     protected $casts = [
@@ -40,6 +39,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function paymentTransaction()
+    {
+        return $this->hasOne(PaymentTransaction::class);
     }
 
     public function reviews()

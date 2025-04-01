@@ -33,6 +33,13 @@ class AuthController extends Controller
 
         $validatedData = $validator->validated();
 
+        if(User::where('email',$validatedData['email'])->first())
+        {
+            return response()->json([
+                'message' =>  'Email '.$validatedData['email'].' has already been taken',
+            ], 400);
+        }
+
         $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
