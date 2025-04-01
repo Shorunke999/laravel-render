@@ -28,9 +28,8 @@ class PaystackService
         $order->update([
             'reference_code'=>$uniqueRef
         ]);
-
         $response = Http::withHeaders([
-            'Authorization' => $this->secretKey,
+            'Authorization' => 'Bearer '. $this->secretKey,
             'Content-Type' => 'application/json'
         ])->post($this->baseUrl.'transaction/initialize',[
             'email'=>$email,

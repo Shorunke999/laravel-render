@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
+use function PHPUnit\Framework\isEmpty;
+
 class OrderService
 {
     public function getUserOrders(array $filters = [])
@@ -36,6 +38,11 @@ class OrderService
     public function createOrder(array $orderData)
     {
         return DB::transaction(function () use ($orderData) {
+            $cartItems = Cart::with('artwork')->where('user_id', Auth::id())->get();
+            if($cartItems->isEmpty())
+            {
+                throw new Exception('Cart is Empty');
+            }
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'status' => 'pending',
@@ -44,8 +51,7 @@ class OrderService
                 'email' => $orderData['email'],
             ]);
 
-            $cartItems = Cart::with('artwork')->where('user_id', Auth::id())->get();
-            $totalAmount = 0;
+           $totalAmount = 0;
 
             foreach ($cartItems as $item) {
                 $this->processOrderItem($order, $item, $totalAmount);

@@ -41,10 +41,9 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'shipping_address' => 'required|array',
+            'shipping_address' => 'required|string',
             'email' => 'required|string',
         ]);
-
         try {
             $order = $this->orderService->createOrder($validatedData);
             $paystackPayment = new PaystackService();
@@ -52,13 +51,14 @@ class OrderController extends Controller
             return response()->json([
                 'message' => 'Order created successfully',
                 'order_id' => $order->id,
+                'checkout_url' =>  $initializePayment['data']['authorization_url'],
                 'authorization_url' => $initializePayment['data']['authorization_url']
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Order creation failed',
                 'error' => $e->getMessage()
-            ]);
+            ],500);
         }
     }
 
@@ -66,7 +66,13 @@ class OrderController extends Controller
     {
         try {
             $order = $this->orderService->cancelOrder($order);
-            return new OrderResource($order);
+            return response()
+            ->json([
+                'status' => true,
+                'message' => 'Order canceled successfully',
+                'canceled_order' =>new OrderResource($order)
+            ]);
+
         }catch (\Exception $e) {
             return response()->json([
                 'message' => 'Order cancellation failed',
