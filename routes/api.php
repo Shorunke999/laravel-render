@@ -36,6 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/artwork', [ArtworkController::class, 'store']);
         Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
         Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
+
+        //Order Update
+        Route::post('/orders/{order}/update', [OrderController::class, 'update']);
     });
 
     Route::get('/categories', [CategoryController::class, 'index']);  // List all categories

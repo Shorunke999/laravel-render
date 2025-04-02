@@ -15,11 +15,25 @@ class OrderService
 {
     public function getUserOrders(array $filters = [])
     {
-        $query = Order::where('user_id', Auth::id());
+        $user = Auth::user();
+        if($user->type == 'customer')
+        {
+            $query = Order::where('user_id', $user->id);
 
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
+            if (isset($filters['status'])) {
+                $query->where('status', $filters['status']);
+            }
+        }else{
+            $query = Order::query();
+
+            if (isset($filters['status'])) {
+                $query->where('status', $filters['status']);
+            }else
+            {
+                $query->where('status','processing');
+            }
         }
+
 
         if (isset($filters['start_date'])) {
             $query->whereDate('created_at', '>=', $filters['start_date']);
@@ -81,6 +95,17 @@ class OrderService
         $totalAmount += $item->calculateTotalPrice();
         $artwork->decrement('stock', $item->quantity);
         $item->delete();
+    }
+
+    public function UpdateOrder(Order $order, $orderStatus)
+    {
+        if (!in_array($order->status, ['pending', 'cancelled'])) {
+            throw new Exception('This order cannot be updated',400);
+        }
+        $order->update([
+            'status' => $orderStatus
+        ]);
+        return $order;
     }
 
     public function cancelOrder(Order $order)

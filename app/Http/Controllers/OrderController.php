@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Services\PaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -59,6 +60,32 @@ class OrderController extends Controller
                 'message' => 'Order creation failed',
                 'error' => $e->getMessage()
             ],500);
+        }
+    }
+
+    public function update(Request $request, Order $order)
+    {
+        try {
+            $validatedData = Validator::make($request->all(),
+            [
+                'status' => 'required|in:shipped,delivered'
+            ]);
+            $order = $this->orderService->updateOrder($order,$validatedData['status']);
+            return response()
+            ->json([
+                'status' => true,
+                'message' => 'Order status has been updated to '. $validatedData['status'] . "successfull"
+            ]);
+        }catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Order updating failed',
+                'error' => $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Order updating failed',
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
