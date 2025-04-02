@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ReviewResource;
 use App\Models\Artwork;
 use App\Models\Order;
 use App\Models\Review;
@@ -15,12 +16,25 @@ class ReviewController extends Controller
      */
     public function artworkReviews(Artwork $artwork)
     {
-        $reviews = $artwork->reviews()
-            ->with('user')
-            ->latest()
-            ->paginate(10);
+        try {
+            $reviews = $artwork->reviews()
+                ->with('user')
+                ->latest()
+                ->paginate(10);
 
-        return new ReviewCollection($reviews);
+            return response()->json([
+                'status' => true,
+                'message' => 'Order created successfully',
+                'reviews' =>ReviewResource::collection($reviews)
+                ], 200);
+        } catch (\Exception $e) {
+            return response()->json(
+                [
+                    'status'=> false,
+                    'message' => $e->getMessage()
+                ]
+                );
+        }
     }
 
     /**
@@ -33,7 +47,7 @@ class ReviewController extends Controller
             ->latest()
             ->paginate(10);
 
-        return new ReviewCollection($reviews);
+            return  ReviewResource::collection($reviews);
     }
 
     /**

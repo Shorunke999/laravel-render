@@ -97,7 +97,6 @@ class OrderController extends Controller
             ->json([
                 'status' => true,
                 'message' => 'Order canceled successfully',
-                'canceled_order' =>new OrderResource($order)
             ]);
 
         }catch (\Exception $e) {

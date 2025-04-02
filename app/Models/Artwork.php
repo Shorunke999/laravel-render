@@ -45,4 +45,9 @@ class Artwork extends Model
         return $this->base_price;
     }
 
+    public function averageRating()
+    {
+        return $this->reviews()
+            ->avg('rating');
+    }
 }

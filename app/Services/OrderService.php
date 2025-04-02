@@ -61,6 +61,7 @@ class OrderService
                 'user_id' => Auth::id(),
                 'status' => 'pending',
                 'total_amount' => 0,
+                'contact' => $orderData['shipping_address'] ?? $orderData['email'],
                 'shipping_address' => $orderData['shipping_address'],
                 'email' => $orderData['email'],
             ]);

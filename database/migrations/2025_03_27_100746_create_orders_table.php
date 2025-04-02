@@ -23,6 +23,7 @@ return new class extends Migration
                 'cancelled'
             ])->default('pending');
             $table->json('shipping_address');
+            $table->string('contact');
             $table->string('payment_status')->default('pending');
             $table->string('reference_code')->nullable();
             $table->timestamps();
