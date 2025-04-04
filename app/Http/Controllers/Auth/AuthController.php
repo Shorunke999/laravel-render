@@ -44,7 +44,8 @@ class AuthController extends Controller
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
-            'type' => $validatedData['type']
+            //'type' => $validatedData['type']
+            'type' => strtolower($validatedData['type'])
         ]);
 
         // Create token for the newly registered user
