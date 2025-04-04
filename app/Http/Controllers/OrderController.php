@@ -66,26 +66,27 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         try {
-            $validatedData = Validator::make($request->all(),
-            [
+            $validatedData = $request->validate([
                 'status' => 'required|in:shipped,delivered'
             ]);
-            $order = $this->orderService->updateOrder($order,$validatedData['status']);
+
+            $order = $this->orderService->updateOrder($order, $validatedData['status']);
+
             return response()
             ->json([
                 'status' => true,
-                'message' => 'Order status has been updated to '. $validatedData['status'] . "successfull"
+                'message' => 'Order status has been updated to '. $validatedData['status'] . " successfully"
             ]);
-        }catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Order updating failed',
                 'error' => $e->getMessage()
-            ]);
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Order updating failed',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 

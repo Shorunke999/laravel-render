@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class ReviewController extends Controller
 {
@@ -24,7 +25,7 @@ class ReviewController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Order created successfully',
+                'message' => 'Fetch Reviews',
                 'reviews' =>ReviewResource::collection($reviews)
                 ], 200);
         } catch (\Exception $e) {
@@ -55,44 +56,64 @@ class ReviewController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'order_id' => 'required|exists:orders,id',
-            'artwork_id' => 'required|exists:artworks,id',
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:500'
-        ]);
+        try {
 
-        // Verify order belongs to user and is delivered
-        $order = Order::findOrFail($validatedData['order_id']);
+            $validatedData = $request->validate([
+                'order_id' => 'required|exists:orders,id',
+                'artwork_id' => 'required|exists:artworks,id',
+                'rating' => 'required|integer|min:1|max:5',
+                'comment' => 'nullable|string|max:500'
+            ]);
 
-        if ($order->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            // Verify order belongs to user and is delivered
+            $order = Order::findOrFail($validatedData['order_id']);
+
+            if ($order->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            if ($order->status !== 'delivered') {
+                return response()->json(['message' => 'Reviews can only be submitted for delivered orders'], 400);
+            }
+
+            // Check if review already exists
+            $existingReview = Review::where('user_id', Auth::id())
+                ->where('order_id', $validatedData['order_id'])
+                ->where('artwork_id', $validatedData['artwork_id'])
+                ->first();
+
+            if ($existingReview) {
+                return response()->json(['message' => 'You have already reviewed this artwork for this order'], 400);
+            }
+
+            $review = Review::create([
+                'user_id' => Auth::id(),
+                'order_id' => $validatedData['order_id'],
+                'artwork_id' => $validatedData['artwork_id'],
+                'rating' => $validatedData['rating'],
+                'comment' => $validatedData['comment'],
+                'is_verified' => true
+            ]);
+            return response()->json([
+                'status' => true,
+                'message' => 'Review Created Successfully',
+                'reviews' =>new ReviewResource($review)
+                ], 200);
+        } catch (ValidationException $e) {
+            return response()->json(
+                [
+                    'status'=> false,
+                    'message' => $e->getMessage()
+                ],422
+                );
+        } catch (\Exception $e) {
+            return response()->json(
+                [
+                    'status'=> false,
+                    'message' => $e->getMessage()
+                ],500
+                );
         }
-
-        if ($order->status !== 'delivered') {
-            return response()->json(['message' => 'Reviews can only be submitted for delivered orders'], 400);
-        }
-
-        // Check if review already exists
-        $existingReview = Review::where('user_id', Auth::id())
-            ->where('order_id', $validatedData['order_id'])
-            ->where('artwork_id', $validatedData['artwork_id'])
-            ->first();
-
-        if ($existingReview) {
-            return response()->json(['message' => 'You have already reviewed this artwork for this order'], 400);
-        }
-
-        $review = Review::create([
-            'user_id' => Auth::id(),
-            'order_id' => $validatedData['order_id'],
-            'artwork_id' => $validatedData['artwork_id'],
-            'rating' => $validatedData['rating'],
-            'comment' => $validatedData['comment'],
-            'is_verified' => true
-        ]);
-
-        return new ReviewResource($review);
     }
 
     /**
@@ -100,19 +121,38 @@ class ReviewController extends Controller
      */
     public function update(Request $request, Review $review)
     {
-        // Ensure the review belongs to the current user
-        if ($review->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        try {
+            // Ensure the review belongs to the current user
+            if ($review->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $validatedData = $request->validate([
+                'rating' => 'integer|min:1|max:5',
+                'comment' => 'nullable|string|max:500'
+            ]);
+
+            $review->update($validatedData);
+            return response()->json([
+                'status' => true,
+                'message' => 'Review Updated Successfully',
+                'reviews' =>new ReviewResource($review)
+                ], 200);
+        } catch (ValidationException $e) {
+            return response()->json(
+                [
+                    'status'=> false,
+                    'message' => $e->getMessage()
+                ],422
+                );
+        } catch (\Exception $e) {
+            return response()->json(
+                [
+                    'status'=> false,
+                    'message' => $e->getMessage()
+                ],500
+                );
         }
-
-        $validatedData = $request->validate([
-            'rating' => 'integer|min:1|max:5',
-            'comment' => 'nullable|string|max:500'
-        ]);
-
-        $review->update($validatedData);
-
-        return new ReviewResource($review);
     }
 
     /**
