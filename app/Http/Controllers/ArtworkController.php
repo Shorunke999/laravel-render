@@ -119,7 +119,7 @@ class ArtworkController extends Controller
             // Handle image upload if present
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    $path = $image->store('artworks', 'public');
+                    $path = $image->store('artworks', 'b2');
                     $artwork->images()->create(['image_url' => Storage::url($path)]);
                 }
             }
@@ -205,14 +205,14 @@ class ArtworkController extends Controller
                     $imagePath = str_replace(Storage::url(''), '', $oldImage->image_url);
 
                     // Delete from storage if exists
-                    Storage::disk('public')->delete($imagePath);
+                    Storage::disk('b2')->delete($imagePath);
 
                     // Delete the image record
                     $oldImage->delete();
                 }
                 // Store new images
                 foreach ($request->file('images') as $image) {
-                    $path = $image->store('artworks', 'public');
+                    $path = $image->store('artworks', 'b2');
                     $artwork->images()->create(['image_url' => Storage::url($path)]);
                 }
             }

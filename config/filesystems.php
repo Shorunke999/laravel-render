@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => env('FILESYSTEM_DISK', 's3'),
 
     /*
     |--------------------------------------------------------------------------
@@ -49,16 +49,30 @@ return [
 
         's3' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
-            'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'key' => env('B2_ACCESS_KEY_ID'),//env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('B2_SECRET_ACCESS_KEY'),//env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('B2_REGION', 'us-east-005'),//env('AWS_DEFAULT_REGION'),
+            'bucket' => env('B2_REGION', 'us-east-005'),//env('AWS_BUCKET'),
+            'url' => env('B2_URL'),//env('AWS_URL'),
+            'endpoint' => env('B2_ENDPOINT'),//env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => true,//env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
         ],
+      'b2' => [
+            'driver' => 's3',
+            'key'    => env('B2_ACCESS_KEY_ID'),
+            'secret' => env('B2_SECRET_ACCESS_KEY'),
+            'region' => env('B2_REGION', 'us-east-005'),
+            'bucket' => env('B2_BUCKET'),
+            'endpoint' => env('B2_ENDPOINT'),
+            'url' => env('B2_URL'),
+            'use_path_style_endpoint' => true, // important for Backblaze
+            'use_ssl' => true,
+            'verify' => false,
+        ],
+
+
 
     ],
 

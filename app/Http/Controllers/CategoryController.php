@@ -32,7 +32,6 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         try {
-
         $validated = $request->validate([
             'name'        => 'required|string|unique:categories,name',
             'description' => 'nullable|string',
@@ -41,7 +40,8 @@ class CategoryController extends Controller
 
         // Store image
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
+            $path = Storage::disk('s3')->putFile('categories',$request->file('image'));
+            dd($path);
             $validated['image_url'] = Storage::url($path);
         }
 
@@ -93,13 +93,13 @@ class CategoryController extends Controller
             // Delete old image
             if ($category->image_url) {
                 $oldImagePath = str_replace(Storage::url(''), '', $category->image_url);
-                if (Storage::disk('public')->exists($oldImagePath)) {
-                    Storage::disk('public')->delete($oldImagePath);
+                if (Storage::disk('b2')->exists($oldImagePath)) {
+                    Storage::disk('b2')->delete($oldImagePath);
                 }
             }
 
             // Store new image
-            $path = $request->file('image')->store('categories', 'public');
+            $path = $request->file('image')->store('categories', 'b2');
             $validated['image_url'] = Storage::url($path);
         }
 
@@ -130,8 +130,8 @@ class CategoryController extends Controller
         // Delete associated image
         if ($category->image_url) {
             $imagePath = str_replace(Storage::url(''), '', $category->image_url);
-            if (Storage::disk('public')->exists($imagePath)) {
-                Storage::disk('public')->delete($imagePath);
+            if (Storage::disk('b2')->exists($imagePath)) {
+                Storage::disk('b2')->delete($imagePath);
             }
         }
 
