@@ -87,8 +87,9 @@ class User extends Authenticatable //implements MustVerifyEmail
     // Optional: Add a mutator to normalize the type
     public function setTypeAttribute($value)
     {
-        $this->attributes['type'] = ucfirst(strtolower($value));
+        $this->attributes['type'] = strtolower($value);
     }
+
 
    /* public function cartCount()
     {
