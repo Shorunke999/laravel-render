@@ -6,12 +6,14 @@ use App\Models\Artwork;
 use App\Http\Requests\StoreArtworkRequest;
 use App\Http\Requests\UpdateArtworkRequest;
 use App\Http\Resources\ArtworkResource;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ArtworkController extends Controller
 {
@@ -116,11 +118,20 @@ class ArtworkController extends Controller
             // Create artwork
             $artwork = Artwork::create($validatedData);
 
+            $cloudinaryService = new CloudinaryService();
             // Handle image upload if present
             if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $path = $image->store('artworks', 'b2');
-                    $artwork->images()->create(['image_url' => Storage::url($path)]);
+                foreach ($request->file('images') as $image) {;
+                    $filename = time().'_'. Str::random();
+
+                    // Use the upload API directly
+                    $result = $cloudinaryService->upload(
+                        $image->getRealPath(),
+                        'artwork',
+                        $filename
+                    );
+                    //$path = $image->store('artworks', 'b2');
+                    $artwork->images()->create(['image_url' =>$result['secure_url'] ]);
                 }
             }
 
@@ -197,23 +208,37 @@ class ArtworkController extends Controller
             $artwork->update($request->validated());
 
 
+            $cloudinaryService = new CloudinaryService();
             // Remove old images before adding new ones
             if ($request->hasFile('images')) {
                 // Delete old images from storage
                 foreach ($artwork->images as $oldImage) {
+
+                    $publicId = $this->extractCloudinaryPublicId($oldImage->image_url);
+                    // Delete the image from Cloudinary using your service
+                    $cloudinaryService->delete($publicId);
                      // Extract the relative path from the full URL
-                    $imagePath = str_replace(Storage::url(''), '', $oldImage->image_url);
+                    //$imagePath = str_replace(Storage::url(''), '', $oldImage->image_url);
 
                     // Delete from storage if exists
-                    Storage::disk('b2')->delete($imagePath);
+                    //Storage::disk('b2')->delete($imagePath);
 
                     // Delete the image record
                     $oldImage->delete();
                 }
                 // Store new images
                 foreach ($request->file('images') as $image) {
-                    $path = $image->store('artworks', 'b2');
-                    $artwork->images()->create(['image_url' => Storage::url($path)]);
+                    $filename = time().'_'. Str::random();
+
+                    // Use the upload API directly
+                    $result = $cloudinaryService->upload(
+                        $image->getRealPath(),
+                        'artwork',
+                        $filename,
+                    );
+                     $artwork->images()->create(['image_url' => $result['secure_url']]);
+                    //$path = $image->store('artworks', 'b2');
+                    //$artwork->images()->create(['image_url' => Storage::url($path)]);
                 }
             }
             // Handle color variants
@@ -289,10 +314,26 @@ class ArtworkController extends Controller
 
     public function destroy(Artwork $artwork)
     {
+
+        $cloudinaryService = new CloudinaryService();
         $artworkName = $artwork->name;
+        foreach ($artwork->images as $Image) {
+
+            $publicId = $this->extractCloudinaryPublicId($Image->image_url);
+            // Delete the image from Cloudinary using your service
+            $cloudinaryService->delete($publicId);
+        }
         $artwork->delete();
         return response()->json([
             'message' => $artworkName . " Artwork has been deleted successfully"
         ]);
     }
+
+    public function extractCloudinaryPublicId($url)
+    {
+        $path = parse_url($url, PHP_URL_PATH); // Get path from URL
+        $filename = pathinfo($path, PATHINFO_FILENAME); // Get the name without extension
+        return $filename;
+    }
+
 }

@@ -59,17 +59,14 @@ return [
             'throw' => false,
             'report' => false,
         ],
-      'b2' => [
-            'driver' => 's3',
-            'key'    => env('B2_ACCESS_KEY_ID'),
-            'secret' => env('B2_SECRET_ACCESS_KEY'),
-            'region' => env('B2_REGION', 'us-east-005'),
-            'bucket' => env('B2_BUCKET'),
-            'endpoint' => env('B2_ENDPOINT'),
-            'url' => env('B2_URL'),
-            'use_path_style_endpoint' => true, // important for Backblaze
-            'use_ssl' => true,
-            'verify' => false,
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            'key' => env('CLOUDINARY_KEY'),
+            'secret' => env('CLOUDINARY_SECRET'),
+            'cloud' => env('CLOUDINARY_CLOUD_NAME'),
+            'url' => env('CLOUDINARY_URL'),
+            'secure' => (bool) env('CLOUDINARY_SECURE', true),
+            'prefix' => env('CLOUDINARY_PREFIX'),
         ],
 
 

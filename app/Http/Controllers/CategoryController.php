@@ -10,7 +10,9 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Str;
+use App\Services\CloudinaryService;
 class CategoryController extends Controller
 {
     /**
@@ -38,11 +40,21 @@ class CategoryController extends Controller
             'image'       => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
+
+        $cloudinaryService = new CloudinaryService();
         // Store image
         if ($request->hasFile('image')) {
-            $path = Storage::disk('s3')->putFile('categories',$request->file('image'));
-            dd($path);
-            $validated['image_url'] = Storage::url($path);
+            $image = $request->file('image');
+            $filename = time().'_'. Str::random();
+
+            // Use the upload API directly
+            $result = $cloudinaryService->upload(
+                $image->getRealPath(),
+                'categories',
+                $filename
+            );
+            //$path = Storage::disk('cloudinary')->put('categories',$request->file('image'));
+            $validated['image_url'] = $result['secure_url'];
         }
 
         $category = Category::create($validated);
@@ -92,15 +104,29 @@ class CategoryController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image
             if ($category->image_url) {
-                $oldImagePath = str_replace(Storage::url(''), '', $category->image_url);
-                if (Storage::disk('b2')->exists($oldImagePath)) {
-                    Storage::disk('b2')->delete($oldImagePath);
-                }
+
+                $cloudinaryService = new CloudinaryService();
+                $publicId = $this->extractCloudinaryPublicId($category->image_url);
+                // Delete the image from Cloudinary using your service
+                $cloudinaryService->delete($publicId);
+                //$oldImagePath = str_replace(Storage::url(''), '', $category->image_url);
+                //if (Storage::disk('b2')->exists($oldImagePath)) {
+                  //  Storage::disk('b2')->delete($oldImagePath);
+                //}
             }
 
             // Store new image
-            $path = $request->file('image')->store('categories', 'b2');
-            $validated['image_url'] = Storage::url($path);
+            //$path = $request->file('image')->store('categories', 'b2');
+            $image = $request->file('image');
+            $filename = time().'_'. Str::random();
+
+            // Use the upload API directly
+            $result = $cloudinaryService->upload(
+                $image->getRealPath(),
+                'categories',
+                $filename
+            );
+            $validated['image_url'] = $result['secure_path'];
         }
 
         $category->update($validated);
@@ -127,15 +153,27 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+
+        $cloudinaryService = new CloudinaryService();
         // Delete associated image
-        if ($category->image_url) {
+            $publicId = $this->extractCloudinaryPublicId($category->image_url);
+            // Delete the image from Cloudinary using your service
+            $cloudinaryService->delete($publicId);
+        /*if ($category->image_url) {
             $imagePath = str_replace(Storage::url(''), '', $category->image_url);
             if (Storage::disk('b2')->exists($imagePath)) {
                 Storage::disk('b2')->delete($imagePath);
             }
-        }
+        }*/
 
         $category->delete();
         return response()->json(['message' => 'Category deleted successfully.']);
+    }
+
+    public function extractCloudinaryPublicId($url)
+    {
+        $path = parse_url($url, PHP_URL_PATH); // Get path from URL
+        $filename = pathinfo($path, PATHINFO_FILENAME); // Get the name without extension
+        return $filename;
     }
 }
