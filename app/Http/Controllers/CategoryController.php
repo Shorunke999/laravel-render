@@ -106,7 +106,7 @@ class CategoryController extends Controller
             if ($category->image_url) {
 
                 $cloudinaryService = new CloudinaryService();
-                $publicId = $this->extractCloudinaryPublicId($category->image_url);
+                $publicId = $cloudinaryService->extractCloudinaryPublicId($category->image_url);
                 // Delete the image from Cloudinary using your service
                 $cloudinaryService->delete($publicId);
                 //$oldImagePath = str_replace(Storage::url(''), '', $category->image_url);
@@ -156,7 +156,7 @@ class CategoryController extends Controller
 
         $cloudinaryService = new CloudinaryService();
         // Delete associated image
-            $publicId = $this->extractCloudinaryPublicId($category->image_url);
+            $publicId = $cloudinaryService->extractCloudinaryPublicId($category->image_url);
             // Delete the image from Cloudinary using your service
             $cloudinaryService->delete($publicId);
         /*if ($category->image_url) {
@@ -168,12 +168,5 @@ class CategoryController extends Controller
 
         $category->delete();
         return response()->json(['message' => 'Category deleted successfully.']);
-    }
-
-    public function extractCloudinaryPublicId($url)
-    {
-        $path = parse_url($url, PHP_URL_PATH); // Get path from URL
-        $filename = pathinfo($path, PATHINFO_FILENAME); // Get the name without extension
-        return $filename;
     }
 }

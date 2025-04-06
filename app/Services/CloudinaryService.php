@@ -79,4 +79,19 @@ class CloudinaryService
             throw $e;
         }
     }
+
+    public function extractCloudinaryPublicId($url)
+    {
+        $path = parse_url($url, PHP_URL_PATH); // e.g. /dutnixfaz/image/upload/v1234567890/artwork/filename.png
+
+        // Remove leading/trailing slashes and split the path into parts
+        $segments = explode('/', trim($path, '/'));
+
+        // Cloudinary format: /<cloud_name>/image/upload/v<timestamp>/<folder>/<filename>
+        // So we extract the last two segments as folder and filename
+        $filename = pathinfo(end($segments), PATHINFO_FILENAME);      // '1743921435_r8BsPzTln7MqH3oA'
+        $folder = prev($segments);                                    // 'artwork'
+
+        return "{$folder}/{$filename}";
+    }
 }

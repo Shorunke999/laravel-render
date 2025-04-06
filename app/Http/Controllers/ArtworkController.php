@@ -214,7 +214,7 @@ class ArtworkController extends Controller
                 // Delete old images from storage
                 foreach ($artwork->images as $oldImage) {
 
-                    $publicId = $this->extractCloudinaryPublicId($oldImage->image_url);
+                    $publicId = $cloudinaryService->extractCloudinaryPublicId($oldImage->image_url);
                     // Delete the image from Cloudinary using your service
                     $cloudinaryService->delete($publicId);
                      // Extract the relative path from the full URL
@@ -319,7 +319,7 @@ class ArtworkController extends Controller
         $artworkName = $artwork->name;
         foreach ($artwork->images as $Image) {
 
-            $publicId = $this->extractCloudinaryPublicId($Image->image_url);
+            $publicId = $cloudinaryService->extractCloudinaryPublicId($Image->image_url);
             // Delete the image from Cloudinary using your service
             $cloudinaryService->delete($publicId);
         }
@@ -328,12 +328,4 @@ class ArtworkController extends Controller
             'message' => $artworkName . " Artwork has been deleted successfully"
         ]);
     }
-
-    public function extractCloudinaryPublicId($url)
-    {
-        $path = parse_url($url, PHP_URL_PATH); // Get path from URL
-        $filename = pathinfo($path, PATHINFO_FILENAME); // Get the name without extension
-        return $filename;
-    }
-
 }
