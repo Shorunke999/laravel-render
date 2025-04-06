@@ -8,11 +8,11 @@ php artisan config:cache
 echo "Caching routes..."
 php artisan route:cache
 
-echo "Running migrations..."
-php artisan migrate:fresh --force
+#echo "Running migrations..."
+#php artisan migrate:fresh --force
 
-echo "Seeding to db..."
-php artisan db:seed --class=DatabaseSeeder --force
+#echo "Seeding to db..."
+#php artisan db:seed --class=DatabaseSeeder --force
 
-echo "Linking storage to public..."
-php artisan storage:link
+#echo "Linking storage to public..."
+#php artisan storage:link
