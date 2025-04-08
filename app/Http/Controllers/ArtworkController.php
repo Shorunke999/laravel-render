@@ -181,19 +181,25 @@ class ArtworkController extends Controller
     public function show(Artwork $artwork): JsonResponse
     {
         try {
-            return response()->json(
-                new ArtworkResource(
-                    $artwork->load([
-                        'category',
-                        'reviews' => function ($query) {
-                            $query->latest()->limit(5);
-                        },
-                        'colorVariants',
-                        'sizeVariants',
-                        'images'
-                    ])
-                )
-            );
+            $relatedArtworks = Artwork::where('category_id', $artwork->category_id)
+            ->where('id', '!=', $artwork->id)
+            ->with('images')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $artwork->load([
+            'category',
+            'reviews' => fn ($query) => $query->latest()->limit(5),
+            'colorVariants',
+            'sizeVariants',
+            'images'
+        ]);
+
+        return response()->json([
+            'artwork' => new ArtworkResource($artwork),
+            'related_artworks' => ArtworkResource::collection($relatedArtworks),
+        ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'Artwork not found',
