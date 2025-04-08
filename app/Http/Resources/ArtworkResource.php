@@ -24,7 +24,7 @@ class ArtworkResource extends JsonResource
             'base_price' => $this->base_price,
             'description' => $this->description,
             'images' => $this->whenLoaded('images', function () {
-                return ArtworkimageResource::collection($this->images);
+                return ArtworkImageResource::collection($this->images);
             }),
             'stock' => $this->stock,
             'color_variants' => $this->whenLoaded('colorVariants', function () {
