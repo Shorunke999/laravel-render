@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ArtworkController extends Controller
@@ -74,7 +75,11 @@ class ArtworkController extends Controller
             return response()->json([
                 'artworks'=>ArtworkResource::collection($artworks)
             ],200);
-        } catch (Exception $e) {
+        } catch (Exception $e)
+        {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Error retrieving artworks',
                 'error' => $e->getMessage()
@@ -160,6 +165,9 @@ class ArtworkController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (Exception $e) {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Error creating artwork',
                 'error' => $e->getMessage()
@@ -192,6 +200,9 @@ class ArtworkController extends Controller
                 'error' => $e->getMessage()
             ], 404);
         } catch (Exception $e) {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Error retrieving artwork',
                 'error' => $e->getMessage()
@@ -263,16 +274,25 @@ class ArtworkController extends Controller
 
             );
         } catch (ValidationException $e) {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Validation error',
                 'errors' => $e->errors()
             ], 422);
         } catch (ModelNotFoundException $e) {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Artwork not found',
                 'error' => $e->getMessage()
             ], 404);
         } catch (Exception $e) {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Error updating artwork',
                 'error' => $e->getMessage()
@@ -305,6 +325,9 @@ class ArtworkController extends Controller
                 'artwork' => ArtworkResource::collection($artworks)
             ]);
         } catch (Exception $e) {
+            Log::info('error',[
+                'message' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Error searching artworks',
                 'error' => $e->getMessage()
