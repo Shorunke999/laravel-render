@@ -17,7 +17,7 @@ class CartResource extends JsonResource
                return new ArtworkColorVariantResource($this->colorVariant);
             }),
             'size_variant' => $this->whenLoaded('sizeVariant', function () {
-                return new ArtworksizeVariantResource($this->sizeVariant);
+                return new ArtworkSizeVariantResource($this->sizeVariant);
             }),
             'item_price' => $this->calculateItemPrice(),
             'total_item_price' => $this->calculateTotalPrice(),
