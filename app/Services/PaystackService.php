@@ -75,6 +75,9 @@ class PaystackService
                 'payment_status' => 'success',
                 'status' => 'processing'
             ]);
+            Log::info('processing successful charge',[
+                'order' => $order
+            ]);
            return response([
                 'status'=>true,
             ],200)->json();
