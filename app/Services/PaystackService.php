@@ -43,6 +43,14 @@ class PaystackService
 
     public function verifyPayment(Request $request)
     {
+        Log::info('message',
+        [
+            'in the verifypayment service'
+        ]);
+        Log::info('payment Payload',
+        [
+            'payload' => $request->json()
+        ]);
         //validate webhook signature.
         $signature =  hash_hmac('sha512',$request->body(),$this->secretKey);
         if ($signature != $request->header('x-paystack-signature'))
