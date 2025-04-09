@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('artist')->nullable();
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->constrained()->onDelete('restrict');
             $table->decimal('base_price', 10, 2);
             $table->text('description')->nullable();
             $table->integer('stock')->default(0);
