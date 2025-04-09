@@ -78,4 +78,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/paystack/payment',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
 
 });
-Route::post('/webhook/verify',[PaystackController::class, 'processWebhook']);
