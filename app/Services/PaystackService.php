@@ -43,14 +43,6 @@ class PaystackService
 
     public function verifyPayment(Request $request)
     {
-        Log::info('message',
-        [
-            'in the verifypayment service'
-        ]);
-        Log::info('payment Payload',
-        [
-            'payload' => $request->json()
-        ]);
         //validate webhook signature.
         $payload = $request->getContent();
 
@@ -81,7 +73,11 @@ class PaystackService
 
         if ($request->event == 'charge.success')
         {
-            $order = Order::where('reference_code',$request->data->reference)
+            Log::info('payload',[
+                'data' => $request->data,
+                'reference' =>$request->data['reference']
+            ]);
+            $order = Order::where('reference_code',$request->data['reference'])
             ->first();
             $order->update([
                 'payment_status' => 'success',
