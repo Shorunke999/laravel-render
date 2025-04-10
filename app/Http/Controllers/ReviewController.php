@@ -26,7 +26,8 @@ class ReviewController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Fetch Reviews',
-                'reviews' =>ReviewResource::collection($reviews)
+                'reviews' =>ReviewResource::collection($reviews),
+                'average_rating' =>$artwork->averageRating()
                 ], 200);
         } catch (\Exception $e) {
             return response()->json(
@@ -48,7 +49,9 @@ class ReviewController extends Controller
             ->latest()
             ->paginate(10);
 
-            return  ReviewResource::collection($reviews);
+            return response()->json([
+                'reviews' => ReviewResource::collection($reviews)
+            ],200);
     }
 
     /**

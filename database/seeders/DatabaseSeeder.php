@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
         // Simulate orders
         $users->each(function ($user) use ($artworks) {
             for ($i = 0; $i < rand(1, 3); $i++) {
-                $statusOptions = ['pending', 'processing'];
+                $statusOptions = ['pending', 'processing','delivered'];
                 $paymentStatusOptions = ['pending', 'success'];
 
                 $status = $statusOptions[array_rand($statusOptions)];

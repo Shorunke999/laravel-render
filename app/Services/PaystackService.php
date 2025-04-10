@@ -52,7 +52,9 @@ class PaystackService
             'payload' => $request->json()
         ]);
         //validate webhook signature.
-        $signature =  hash_hmac('sha512',$request->body(),$this->secretKey);
+        $payload = $request->getContent();
+
+        $signature =  hash_hmac('sha512',$payload,$this->secretKey);
         if ($signature != $request->header('x-paystack-signature'))
         {
 
@@ -69,10 +71,12 @@ class PaystackService
                 ]
 
             ]);
-            return response([
-                'status' => false,
-                'message' => 'invalid signature'
-            ],401)->json();
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'invalid signature'
+                ],401
+            );
         }
 
         if ($request->event == 'charge.success')
@@ -86,9 +90,9 @@ class PaystackService
             Log::info('processing successful charge',[
                 'order' => $order
             ]);
-           return response([
-                'status'=>true,
-            ],200)->json();
+           return response()->json([
+            'status'=>true,
+        ],200);
         }
     }
 }
