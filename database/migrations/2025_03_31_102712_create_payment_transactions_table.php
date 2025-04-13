@@ -13,15 +13,14 @@ return new class extends Migration
     {
         Schema::create('payment_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained()->onDelete('cascade');
+            $table->foreignId('order_id')->constrained()->onDelete('restrict'); // this is enough
             $table->string('reference');
             $table->decimal('amount');
             $table->enum('status',['pending','verified','disputed','refund']);
             $table->json('metadata');
             $table->timestamps();
-
-            $table->foreign('order_id')->references('id')->on('orders');
         });
+
     }
 
     /**

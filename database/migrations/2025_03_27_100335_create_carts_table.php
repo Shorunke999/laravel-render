@@ -16,14 +16,10 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('artwork_id');
             $table->integer('quantity')->default(1);
-            $table->unsignedBigInteger('color_variant_id')->nullable();
-            $table->unsignedBigInteger('size_variant_id')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('artwork_id')->references('id')->on('artworks')->onDelete('restrict');
-            $table->foreign('color_variant_id')->references('id')->on('artwork_color_variants')->onDelete('cascade');
-            $table->foreign('size_variant_id')->references('id')->on('artwork_size_variants')->onDelete('cascade');
 
             $table->unique(['user_id', 'artwork_id']);
         });

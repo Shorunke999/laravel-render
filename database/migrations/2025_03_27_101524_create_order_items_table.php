@@ -15,14 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('artwork_id')->constrained()->onDelete('cascade');
-            $table->unsignedBigInteger('color_variant_id')->nullable();
-            $table->unsignedBigInteger('size_variant_id')->nullable();
             $table->decimal('price', 10, 2);
             $table->integer('quantity');
             $table->timestamps();
 
-            $table->foreign('color_variant_id')->references('id')->on('artwork_color_variants')->onDelete('cascade');
-            $table->foreign('size_variant_id')->references('id')->on('artwork_size_variants')->onDelete('cascade');
 
         });
     }

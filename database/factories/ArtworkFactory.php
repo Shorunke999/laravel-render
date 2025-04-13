@@ -30,44 +30,6 @@ class ArtworkFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function (Artwork $artwork) {
-            // Create size variants
-            $artwork->sizeVariants()->createMany([
-                [
-                    'size' => 'Small',
-                    'price_increment' => $this->faker->randomFloat(2, 0, 20),
-                    'stock' => $this->faker->numberBetween(0, 50)
-                ],
-                [
-                    'size' => 'Medium',
-                    'price_increment' => $this->faker->randomFloat(2, 0, 30),
-                    'stock' => $this->faker->numberBetween(0, 50)
-                ],
-                [
-                    'size' => 'Large',
-                    'price_increment' => $this->faker->randomFloat(2, 0, 50),
-                    'stock' => $this->faker->numberBetween(0, 50)
-                ]
-            ]);
-
-            // Create color variants
-            $artwork->colorVariants()->createMany([
-                [
-                    'color' => 'Red',
-                    'price_increment' => $this->faker->randomFloat(2, 0, 20),
-                    'stock' => $this->faker->numberBetween(0, 50)
-                ],
-                [
-                    'color' => 'Blue',
-                    'price_increment' => $this->faker->randomFloat(2, 0, 20),
-                    'stock' => $this->faker->numberBetween(0, 50)
-                ],
-                [
-                    'color' => 'Green',
-                    'price_increment' => $this->faker->randomFloat(2, 0, 20),
-                    'stock' => $this->faker->numberBetween(0, 50)
-                ]
-            ]);
-
             // Create artwork images
             $artwork->images()->createMany(
                 collect(range(1, $this->faker->numberBetween(1, 3)))
