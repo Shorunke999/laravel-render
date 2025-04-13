@@ -30,8 +30,6 @@ class CartService
             $cartItem = Cart::firstOrNew([
                 'user_id' => Auth::id(),
                 'artwork_id' => $data['artwork_id'],
-                'color_variant_id' => $data['color_variant_id'] ?? null,
-                'size_variant_id' => $data['size_variant_id'] ?? null,
             ]);
 
             if ($cartItem->exists) {
@@ -45,7 +43,7 @@ class CartService
             $cartItem->save();
             $this->clearCache();
 
-            return $cartItem->load(['artwork', 'colorVariant', 'sizeVariant']);
+            return $cartItem->load('artwork');
         });
     }
 
@@ -77,13 +75,11 @@ class CartService
 
             $cartItem->update([
                 'quantity' => $data['quantity'],
-                'color_variant_id' => $data['color_variant_id'] ?? null,
-                'size_variant_id' => $data['size_variant_id'] ?? null,
             ]);
 
             $this->clearCache();
 
-            return $cartItem->load(['artwork', 'colorVariant', 'sizeVariant']);
+            return $cartItem->load('artwork');
         });
     }
 
@@ -134,29 +130,6 @@ class CartService
             throw new Exception("Insufficient stock for {$artwork->name}. Available: {$artwork->stock}");
         }
 
-        if (isset($data['color_variant_id'])) {
-            $colorVariant = $artwork->colorVariants
-                ->firstWhere('id', $data['color_variant_id']);
-            if (!$colorVariant) {
-                throw new Exception("Invalid artwork variant, pls check the variant id ");
-            }
-            if ($requestedQuantity > $colorVariant->stock) {
-                throw new Exception("Insufficient stock for selected color variant. Available: " .
-                    ($colorVariant ? $colorVariant->stock : 0));
-            }
-        }
-
-        if (isset($data['size_variant_id'])) {
-            $sizeVariant = $artwork->sizeVariants->firstWhere('id', $data['size_variant_id']);
-                //dd($sizeVariant);
-            if (!$sizeVariant) {
-                throw new Exception("Invalid artwork variant, pls check the variant id ");
-            }
-            if (!$sizeVariant || $requestedQuantity > $sizeVariant->stock) {
-                throw new Exception("Insufficient stock for selected size variant. Available: " .
-                    ($sizeVariant ? $sizeVariant->stock : 0));
-            }
-        }
     }
 
     /**

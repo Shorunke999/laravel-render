@@ -31,16 +31,8 @@ class StoreArtworkRequest extends FormRequest
 
             // Multiple image uploads
             'images' => 'required|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
 
-            'color_variants' => 'array',
-            'color_variants.*.color' => 'required|string|max:50',
-            'color_variants.*.price_increment' => 'required|numeric|min:0',
-            'color_variants.*.stock' => 'required|integer|min:0',
-            'size_variants' => 'array',
-            'size_variants.*.size' => 'required|string|max:50',
-            'size_variants.*.price_increment' => 'required|numeric|min:0',
-            'size_variants.*.stock' => 'required|integer|min:0',
         ];
     }
 }

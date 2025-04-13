@@ -63,7 +63,7 @@ class OrderService
                 'total_amount' => 0,
                 'contact' => $orderData['shipping_address'] ?? $orderData['email'],
                 'shipping_address' => $orderData['shipping_address'],
-                'email' => $orderData['email'],
+                'email' => Auth::user()->email,
             ]);
 
            $totalAmount = 0;
@@ -89,8 +89,6 @@ class OrderService
             'artwork_id' => $artwork->id,
             'quantity' => $item->quantity,
             'price' => $item->calculateTotalPrice(),
-            'color_variant_id' => $item->color_variant_id,
-            'size_variant_id' => $item->size_variant_id
         ]);
 
         $totalAmount += $item->calculateTotalPrice();

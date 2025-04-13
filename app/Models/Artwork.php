@@ -25,16 +25,6 @@ class Artwork extends Model
     {
         return $this->hasMany(Review::class);
     }
-
-    public function colorVariants()
-    {
-        return $this->hasMany(ArtworkColorVariant::class);
-    }
-
-    public function sizeVariants()
-    {
-        return $this->hasMany(ArtworkSizeVariant::class);
-    }
     public function images()
     {
         return $this->hasMany(ArtworkImage::class);

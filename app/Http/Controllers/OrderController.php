@@ -43,18 +43,49 @@ class OrderController extends Controller
     {
         $validatedData = $request->validate([
             'shipping_address' => 'required|string',
-            'email' => 'required|string',
+            'metadata' => 'nullable|array',
+            'recurring' => 'nullable|boolean',
+            'order_id' => 'nullable|exists:orders,id'
         ]);
         try {
-            $order = $this->orderService->createOrder($validatedData);
+            $user = Auth::user();
+            if($validatedData['recurring'])
+            {
+                $user->update([
+                    'recurring_transaction' => $validatedData['recurring']
+                ]);
+            }
+            $order = Order::find($validatedData['order_id']);
+            if(!$order)
+            {
+                $order = $this->orderService->createOrder($validatedData);
+            }
+
             $paystackPayment = new PaystackService();
-            $initializePayment = $paystackPayment->intializePayment($validatedData['email'],$order);
-            return response()->json([
-                'message' => 'Order created successfully',
-                'order_id' => $order->id,
-                'checkout_url' =>  $initializePayment['data']['authorization_url'],
-                'authorization_url' => $initializePayment['data']['authorization_url']
-            ], 201);
+            if($user->recurring_transaction && $user->authorization_code)
+            {
+                $recurringPayment = $paystackPayment->chargeUserRecurring($user->email,$order,$validatedData['metadata']);
+                return response()->json([
+                    'status' => $recurringPayment['status'],
+                    'message' => $recurringPayment['message'],
+                    'checkout_url' =>  $recurringPayment['data']['authorization_url'] ?? [],
+                    'authorization_url' => $recurringPayment['data']['authorization_url'] ?? [],
+                    'order_id' => $order->id,
+                ],200);
+            }
+            else
+            {
+            $initializePayment = $paystackPayment->intializePayment($user->email,$order,$validatedData['metadata']);
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Order created successfully and will be redirected now',
+                    'order_id' => $order->id,
+                    'checkout_url' =>  $initializePayment['data']['authorization_url'],
+                    'authorization_url' => $initializePayment['data']['authorization_url']
+                ], 201);
+
+            }
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Order creation failed',

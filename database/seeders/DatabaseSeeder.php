@@ -42,16 +42,10 @@ class DatabaseSeeder extends Seeder
             $randomArtworks = $artworks->random(rand(1, 3));
 
             $randomArtworks->each(function ($artwork) use ($user) {
-                $sizeVariant = $artwork->sizeVariants()->inRandomOrder()->first();
-                $colorVariant = $artwork->colorVariants()->inRandomOrder()->first();
-
-                if (!$sizeVariant || !$colorVariant) return;
 
                 $user->cart()->create([
                     'artwork_id' => $artwork->id,
                     'quantity' => rand(1, 3),
-                    'color_variant_id' => $colorVariant->id,
-                    'size_variant_id' => $sizeVariant->id,
                 ]);
             });
         });
@@ -85,23 +79,14 @@ class DatabaseSeeder extends Seeder
                 ]);
 
                 foreach ($cartArtworks as $artwork) {
-                    $sizeVariant = $artwork->sizeVariants()->inRandomOrder()->first();
-                    $colorVariant = $artwork->colorVariants()->inRandomOrder()->first();
-
-                    if (!$sizeVariant || !$colorVariant) continue;
-
                     $quantity = rand(1, 3);
-                    $price = ($artwork->base_price + $sizeVariant->price_increment + $colorVariant->price_increment) * $quantity;
-
                     $order->orderItems()->create([
                         'artwork_id' => $artwork->id,
                         'quantity' => $quantity,
-                        'price' => $price,
-                        'size_variant_id' => $sizeVariant->id,
-                        'color_variant_id' => $colorVariant->id,
+                        'price' => $artwork->base_price,
                     ]);
 
-                    $totalAmount += $price;
+                    $totalAmount += $artwork->base_price;
                     $artwork->decrement('stock', $quantity);
                 }
 

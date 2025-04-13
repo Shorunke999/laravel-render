@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\PaymentTransaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -21,8 +23,38 @@ class PaystackService
 
     }
 
-    public function intializePayment(string $email, Order $order)
+    public function intializePayment(string $email, Order $order, array $metadata = [])
     {
+        try {
+            $uniqueRef = 'Tiimbooktu_' . Str::random(12);
+
+            $order->update([
+                'reference_code'=>$uniqueRef
+            ]);
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '. $this->secretKey,
+                'Content-Type' => 'application/json'
+            ])->post($this->baseUrl.'transaction/initialize',[
+                'email'=>$email,
+                'amount' => $order->total_amount * 100,
+                'reference' =>$uniqueRef,
+                'metadata' => $metadata,
+                'callback_url' => $this->callbackUrl,
+            ]);
+
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::info('error during initializePayment',
+            [
+                'message' => 'error '.$e->getMessage()
+            ]);
+        }
+    }
+
+    public function chargeUserRecurring(string $email, Order $order, array $metadata = [])
+    {
+        try {
+
         $uniqueRef = 'Tiimbooktu_' . Str::random(12);
 
         $order->update([
@@ -31,14 +63,20 @@ class PaystackService
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '. $this->secretKey,
             'Content-Type' => 'application/json'
-        ])->post($this->baseUrl.'transaction/initialize',[
+        ])->post($this->baseUrl.'transaction/charge_authorization',[
             'email'=>$email,
             'amount' => $order->total_amount * 100,
             'reference' =>$uniqueRef,
+            'metadata' => $metadata,
             'callback_url' => $this->callbackUrl,
         ]);
-
         return $response->json();
+        } catch (\Exception $e) {
+            Log::info('error during chargeUserReccuring',
+            [
+                'message' => 'error '.$e->getMessage()
+            ]);
+        }
     }
 
     public function verifyPayment(Request $request)
@@ -73,18 +111,28 @@ class PaystackService
 
         if ($request->event == 'charge.success')
         {
-            Log::info('payload',[
-                'data' => $request->data,
-                'reference' =>$request->data['reference']
-            ]);
             $order = Order::where('reference_code',$request->data['reference'])
             ->first();
             $order->update([
                 'payment_status' => 'success',
                 'status' => 'processing'
             ]);
-            Log::info('processing successful charge',[
-                'order' => $order
+            $authorization = json_encode($request->data['authorization'] ?? []);
+            $authorizationCode = $request->data['authorization']['authorization_code'];
+
+            $user = User::find($order->user_id);
+            if ($user && $user->recurring_transaction) {
+                $user->update([
+                    'authorization_code' => $authorizationCode,
+                    'authorization' => $authorization
+                ]);
+            }
+            PaymentTransaction::create([
+                'order_id' => $order->id,
+                'amount' => $request->data['amount'] / 100,
+                'reference' => $request->data['reference'],
+                'status' => 'verified',
+                'metadata' => json_encode($request->data['metadata'] ?? [])
             ]);
            return response()->json([
             'status'=>true,

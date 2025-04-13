@@ -31,18 +31,7 @@ class UpdateArtworkRequest extends FormRequest
              // Multiple image uploads
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            //color variant
-            'color_variants' => 'nullable|array',
-            'color_variants.*.id' => 'nullable|exists:artwork_color_variants,id', // Needed for updating
-            'color_variants.*.color' => 'required_with:color_variants|string|max:50',
-            'color_variants.*.price_increment' => 'required_with:color_variants|numeric|min:0',
-            'color_variants.*.stock' => 'required_with:color_variants|integer|min:0',
 
-            'size_variants' => 'nullable|array',
-            'size_variants.*.id' => 'nullable|exists:artwork_size_variants,id',
-            'size_variants.*.size' => 'required_with:size_variants|string|max:50',
-            'size_variants.*.price_increment' => 'required_with:size_variants|numeric|min:0',
-            'size_variants.*.stock' => 'required_with:size_variants|integer|min:0',
         ];
     }
 }

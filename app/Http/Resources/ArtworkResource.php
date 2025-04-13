@@ -27,12 +27,6 @@ class ArtworkResource extends JsonResource
                 return ArtworkImageResource::collection($this->images);
             }),
             'stock' => $this->stock,
-            'color_variants' => $this->whenLoaded('colorVariants', function () {
-                return ArtworkColorVariantResource::collection($this->colorVariants);
-            }),
-            'size_variants' => $this->whenLoaded('sizeVariants', function () {
-                return ArtworkSizeVariantResource::collection($this->sizeVariants);
-            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'average_rating' => $this->whenLoaded('reviews', function () {

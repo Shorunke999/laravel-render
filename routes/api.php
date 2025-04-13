@@ -17,6 +17,14 @@ use Illuminate\Support\Facades\Route;
     // Optional: Email Verification Routes
     // Route::get('verify-email/{token}', [AuthController::class, 'verifyEmail']);
 
+    Route::get('/categories', [CategoryController::class, 'index']);  // List all categories
+    Route::get('/categories/{category}', [CategoryController::class, 'show']); // Get a single category
+
+
+    // Artwork Routes
+    Route::get('/artworks', [ArtworkController::class, 'index']);
+    Route::get('/artworks/search', [ArtworkController::class, 'search']);
+    Route::get('/artworks/{artwork}', [ArtworkController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
      // Get authenticated user
@@ -28,7 +36,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Categories actions for Admin only
         Route::post('/categories', [CategoryController::class, 'store']); // Create a new category
-        Route::get('/categories/{category}', [CategoryController::class, 'show']); // Get a single category
         Route::put('/categories/{category}', [CategoryController::class, 'update']); // Update a category
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']); // Delete a category
 
@@ -37,17 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
         Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
 
-        //Order Update
-        //Route::post('/orders/{order}/update', [OrderController::class, 'update']);
     });
   //Order Update
   Route::post('/orders/{order}/update', [OrderController::class, 'update']);
-    Route::get('/categories', [CategoryController::class, 'index']);  // List all categories
 
-    // Artwork Routes
-    Route::get('/artworks', [ArtworkController::class, 'index']);
-    Route::get('/artworks/search', [ArtworkController::class, 'search']);
-    Route::get('/artworks/{artwork}', [ArtworkController::class, 'show']);
 
     // Get cart contents
     Route::get('/cart', [CartController::class, 'viewCart']);
@@ -76,6 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //payment
     Route::post('/paystack/payment',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
+    Route::get('/paystack/disable/recurring/charge',[PaystackController::class, 'diableRecurringCharge'])->name('disable.recurring');
 
 });
 

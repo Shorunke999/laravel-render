@@ -67,7 +67,7 @@ class ArtworkController extends Controller
             }
 
             // Include relationships
-            $query->with(['category','images','colorVariants','sizeVariants']);
+            $query->with(['category','images']);
 
             // Pagination
             $artworks = $query->paginate($request->input('per_page', 12));
@@ -95,31 +95,6 @@ class ArtworkController extends Controller
         try {
             $validatedData = $request->validated();
 
-            // Calculate total variant stocks
-            $totalVariantStock = 0;
-
-            // Sum color variant stocks if present
-            if ($request->has('color_variants')) {
-                foreach ($request->color_variants as $variant) {
-                    $totalVariantStock += $variant['stock'];
-                }
-            }
-
-            // Sum size variant stocks if present
-            if ($request->has('size_variants')) {
-                foreach ($request->size_variants as $variant) {
-                    $totalVariantStock += $variant['stock'];
-                }
-            }
-
-            // If variants exist, validate stock matches
-            if (($request->has('color_variants') || $request->has('size_variants')) &&
-                $validatedData['stock'] != $totalVariantStock) {
-                throw ValidationException::withMessages([
-                    'stock' => 'The total artwork stock must equal the sum of all variant stocks.'
-                ]);
-            }
-
             // Create artwork
             $artwork = Artwork::create($validatedData);
 
@@ -140,23 +115,9 @@ class ArtworkController extends Controller
                 }
             }
 
-            // Handle color variants
-            if ($request->has('color_variants')) {
-                foreach ($request->color_variants as $variant) {
-                    $artwork->colorVariants()->create($variant);
-                }
-            }
-
-            // Handle size variants
-            if ($request->has('size_variants')) {
-                foreach ($request->size_variants as $variant) {
-                    $artwork->sizeVariants()->create($variant);
-                }
-            }
-
             return response()->json([
                 'message' => 'Artwork created successfully',
-                'artwork' => new ArtworkResource($artwork->load(['category','images','colorVariants','sizeVariants'])),
+                'artwork' => new ArtworkResource($artwork->load(['category','images'])),
             ], 201);
 
         } catch (ValidationException $e) {
@@ -191,8 +152,6 @@ class ArtworkController extends Controller
         $artwork->load([
             'category',
             'reviews' => fn ($query) => $query->latest()->limit(5),
-            'colorVariants',
-            'sizeVariants',
             'images'
         ]);
 
@@ -258,22 +217,6 @@ class ArtworkController extends Controller
                     //$artwork->images()->create(['image_url' => Storage::url($path)]);
                 }
             }
-            // Handle color variants
-            if ($request->has('color_variants')) {
-                $artwork->colorVariants()->delete();
-                foreach ($request->color_variants as $variant) {
-                    $artwork->colorVariants()->create($variant);
-                }
-            }
-
-            // Handle size variants
-            if ($request->has('size_variants')) {
-                $artwork->sizeVariants()->delete();
-                foreach ($request->size_variants as $variant) {
-                    $artwork->sizeVariants()->create($variant);
-                }
-            }
-
             return response()->json([
                 'message' => 'Artwork Updated Successfully',
                 'artwork' =>  new ArtworkResource($artwork->load(['colorVariants', 'sizeVariants','images']))]

@@ -18,6 +18,13 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('type',['customer','admin'])->default('customer');//->using('lower(type)');
+
+            //payment transaction
+            $table->boolean('recurring_transaction')->default(false);
+            $table->json('authorization')->nullable();
+            $table->string('authorization_code')->nullable();
+
+
             $table->rememberToken();
             $table->timestamps();
         });

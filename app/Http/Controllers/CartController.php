@@ -25,8 +25,6 @@ class CartController extends Controller
             $validatedData = $request->validate([
                 'artwork_id' => 'required|exists:artworks,id',
                 'quantity' => 'integer|min:1|max:100',
-                'color_variant_id' => 'nullable|exists:artwork_color_variants,id',
-                'size_variant_id' => 'nullable|exists:artwork_size_variants,id',
             ]);
 
             $cartItem = $this->cartService->addItem($validatedData);
@@ -78,8 +76,6 @@ class CartController extends Controller
             $validatedData = $request->validate([
                 'cart_item_id' => 'required|exists:carts,id',
                 'quantity' => 'required|integer|min:1|max:100',
-                'color_variant_id' => 'nullable|exists:artwork_color_variants,id',
-                'size_variant_id' => 'nullable|exists:artwork_size_variants,id',
             ]);
 
             $cartItem = $this->cartService->updateItem($validatedData);
