@@ -9,8 +9,10 @@ use App\Exceptions\InsufficientStockException;
 use App\Exceptions\OrderProcessingException;
 use App\Models\Order;
 use App\Services\PaystackService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
@@ -43,50 +45,23 @@ class OrderController extends Controller
     {
         $validatedData = $request->validate([
             'shipping_address' => 'required|string',
-            'metadata' => 'nullable|array',
-            'recurring' => 'nullable|boolean',
-            'order_id' => 'nullable|exists:orders,id'
         ]);
         try {
-            $user = Auth::user();
-            if($validatedData['recurring'])
-            {
-                $user->recurring_transaction = $validatedData['recurring'];
-                $user->save();
 
-            }
-            $order = Order::find($validatedData['order_id']);
-            if($order->payment_status == "success")
-            {
-                return response()
-                    ->json([
-                        'status' => false,
-                        'message' => 'This order payment has been made already'
-                    ],422);
-            }
-            if(!$order)
-            {
-                $order = $this->orderService->createOrder($validatedData);
-            }
+            $order = $this->orderService->createOrder($validatedData);
 
-            $paystackPayment = new PaystackService();
-            if($user->recurring_transaction && $user->authorization_code)
-            {
-                $Payment = $paystackPayment->chargeUserRecurring($user->email,$order,$validatedData['metadata']);
-                $message = "Order created and Charging using recurring card details successfull";
-            }
-            else
-            {
-                $Payment = $paystackPayment->intializePayment($user->email,$order,$validatedData['metadata']);
-                $message = "Order created successfully and will be redirected now";
-            }
             return response()->json([
                 'status' => true,
-                'message' => $message,
-                'order_id' => $order->id ?? null,
-                'checkout_url' =>  $Payment['data']['authorization_url'] ?? [],
-                'authorization_url' => $Payment['data']['authorization_url'] ?? []
-            ], 201);
+                'message' => 'order Created successfully',
+                'order' => new OrderResource($order)
+            ],200);
+
+        }catch(\Throwable $th)
+        {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ],422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Order creation failed',

@@ -75,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
 
     //payment
-    Route::post('/paystack/payment',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
+    Route::post('/paystack/checkout',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
     Route::get('/paystack/disable/recurring/charge',[PaystackController::class, 'diableRecurringCharge'])->name('disable.recurring');
 
 });

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,7 @@ class PaystackService
 
     }
 
-    public function intializePayment(string $email, Order $order, array $metadata = [])
+    public function intializePayment($user, Order $order, array $metadata = [])
     {
         try {
             $uniqueRef = 'Tiimbooktu_' . Str::random(12);
@@ -36,7 +37,7 @@ class PaystackService
                 'Authorization' => 'Bearer '. $this->secretKey,
                 'Content-Type' => 'application/json'
             ])->post($this->baseUrl.'transaction/initialize',[
-                'email'=>$email,
+                'email'=>$user->email,
                 'amount' => intval($order->total_amount) * 100,
                 'reference' =>$uniqueRef,
                 'metadata' => $metadata,
@@ -52,7 +53,7 @@ class PaystackService
         }
     }
 
-    public function chargeUserRecurring(string $email, Order $order, array $metadata = [])
+    public function chargeUserRecurring($user, Order $order, array $metadata = [])
     {
         try {
 
@@ -65,8 +66,9 @@ class PaystackService
             'Authorization' => 'Bearer '. $this->secretKey,
             'Content-Type' => 'application/json'
         ])->post($this->baseUrl.'transaction/charge_authorization',[
-            'email'=>$email,
-            'amount' => $order->total_amount * 100,
+            'email'=>$user->email,
+            'amount' => intval($order->total_amount) * 100,
+            'authorization_code' => $user->authorization_code,
             'reference' =>$uniqueRef,
             'metadata' => $metadata,
             'callback_url' => $this->callbackUrl,
@@ -77,6 +79,11 @@ class PaystackService
             [
                 'message' => 'error '.$e->getMessage()
             ]);
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ],500);
+
         }
     }
 
