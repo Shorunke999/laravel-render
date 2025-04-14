@@ -66,13 +66,14 @@ class DatabaseSeeder extends Seeder
                     'user_id' => $user->id,
                     'total_amount' => 0,
                     'status' => $status,
-                    'shipping_address' => json_encode([
+                    'shipping_details' => json_encode([
                         'street' => fake()->streetAddress(),
                         'city' => fake()->city(),
                         'state' => fake()->state(),
                         'country' => fake()->country(),
                         'zip' => fake()->postcode(),
                     ]),
+                    'shipping_method' => 'express',
                     'contact' => fake()->phoneNumber(),
                     'payment_status' => $paymentStatus,
                     'reference_code' => strtoupper(Str::random(10)),

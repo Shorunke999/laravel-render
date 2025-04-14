@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Concurrency;
 class PaystackService
 {
     protected $secretKey;
@@ -119,31 +119,39 @@ class PaystackService
 
         if ($request->event == 'charge.success')
         {
-            $order = Order::where('reference_code',$request->data['reference'])
-            ->first();
-            $order->update([
-                'payment_status' => 'success',
-                'status' => 'processing'
-            ]);
-            $authorization = json_encode($request->data['authorization'] ?? []);
-            $authorizationCode = $request->data['authorization']['authorization_code'];
-            Log::info('webhook payload',[
-                $authorization
-            ]);
-            $user = User::find($order->user_id);
-            if ($user && $user->recurring_transaction) {
-                $user->update([
-                    'authorization_code' => $authorizationCode,
-                    'authorization' => $authorization
-                ]);
-            }
-            PaymentTransaction::create([
-                'order_id' => $order->id,
-                'amount' => $request->data['amount'] / 100,
-                'reference' => $request->data['reference'],
-                'status' => 'verified',
-                'metadata' => json_encode($request->data['metadata'] ?? [])
-            ]);
+            defer(
+                function() use ($request)
+                {
+                    $order = Order::where('reference_code',$request->data['reference'])
+                    ->first();
+                    $order->update([
+                        'payment_status' => 'success',
+                        'status' => 'processing'
+                    ]);
+                    $orderService = new OrderService();
+
+                       $orderService->decreaseArtworksStock($order);
+
+                    $authorization = json_encode($request->data['authorization'] ?? []);
+                    $authorizationCode = $request->data['authorization']['authorization_code'];
+
+                    $user = User::find($order->user_id);
+                    if ($user && $user->recurring_transaction) {
+                        $user->update([
+                            'authorization_code' => $authorizationCode,
+                            'authorization' => $authorization
+                        ]);
+                    }
+                    PaymentTransaction::create([
+                        'order_id' => $order->id,
+                        'amount' => $request->data['amount'] / 100,
+                        'reference' => $request->data['reference'],
+                        'status' => 'verified',
+                        'metadata' => json_encode($request->data['metadata'] ?? [])
+                    ]);
+                }
+            );
+
            return response()->json([
             'status'=>true,
         ],200);

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2);
             $table->text('description')->nullable();
             $table->integer('stock')->default(0);
+            //$table->integer('stock_after_order')->default(0);
             $table->timestamps();
         });
     }

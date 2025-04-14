@@ -22,7 +22,9 @@ class OrderResource extends JsonResource
             'contact' => $this->contact,
             'user' => $this->whenLoaded('user', function(){
                 return new UserResource($this->user);
-            })
+            }),
+            'placed_on' => $this->created_at,
+            'delivered_at'=> $this->delivered_at
         ];
     }
 }

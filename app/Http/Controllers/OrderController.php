@@ -43,29 +43,59 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'shipping_address' => 'required|string',
-        ]);
         try {
-
-            $order = $this->orderService->createOrder($validatedData);
-
+            $validatedData = $request->validate([
+                'shipping_details' => 'required|array',
+                'contact' => 'required|email',
+                'shipping_method' => 'required|in:standard,express',
+                'recurring' => 'required|boolean',
+                'metadata' => "nullable|array"
+            ]);
+            $user = Auth::user();
+            if(isset($validatedData['recurring']))
+            {
+                $user->recurring_transaction = $validatedData['recurring'];
+                $user->save();
+            }
+            $order = $this->orderService->createOrder($validatedData,$user);
+            $paystackPayment = new PaystackService();
+            if($user->recurring_transaction && $user->authorization_code)
+            {
+                $Payment = $paystackPayment->chargeUserRecurring($user,$order,$validatedData['metadata'] ?? []);
+                $message = "Order created and Charging using recurring card details successfull";
+            }
+            else
+            {
+                $Payment = $paystackPayment->intializePayment($user,$order,$validatedData['metadata'] ?? []);
+                $message = "Order created successfully and will be redirected now";
+            }
+            if(!$Payment['status'])
+            {
+                throw new Exception($Payment['message']);
+            }
             return response()->json([
                 'status' => true,
-                'message' => 'order Created successfully',
-                'order' => new OrderResource($order)
-            ],200);
-
-        }catch(\Throwable $th)
-        {
-            return response()->json([
-                'status' => false,
+                'message' => $message,
+                'order_id' => $order->id ?? null,
+                'checkout_url' =>  $Payment['data']['authorization_url'] ?? [],
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()
+            ->json([
+                'status' =>false,
                 'message' => $th->getMessage()
             ],422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Order creation failed',
-                'error' => $e->getMessage()
+        }catch(\Exception $e)
+        {
+            Log::info('Error during Order Creation and Paystack',
+            [
+                'status' =>false,
+                'message' => $e->getMessage()
+            ]);
+            return response()
+            ->json([
+                'status' =>false,
+                'message' => $e->getMessage()
             ],500);
         }
     }
@@ -77,7 +107,8 @@ class OrderController extends Controller
                 'status' => 'required|in:shipped,delivered'
             ]);
 
-            $order = $this->orderService->updateOrder($order, $validatedData['status']);
+            $deliveredAt = ($validatedData['status'] == "delivered") ? now() : null;
+            $order = $this->orderService->updateOrder($order, $validatedData['status'],$deliveredAt);
 
             return response()
             ->json([

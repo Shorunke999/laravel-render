@@ -22,10 +22,13 @@ return new class extends Migration
                 'delivered',
                 'cancelled'
             ])->default('pending');
-            $table->json('shipping_address');
+            $table->enum('shipping_method',['express','standard']);
+
+            $table->json('shipping_details');
             $table->string('contact');
             $table->string('payment_status')->default('pending');
             $table->string('reference_code')->nullable();
+            $table->timestamp('delivered_at')->nullable();
             $table->timestamps();
         });
     }

@@ -8,6 +8,7 @@ use App\Models\Cart;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -49,32 +50,44 @@ class OrderService
                     ->paginate($filters['per_page'] ?? 10);
     }
 
-    public function createOrder(array $orderData)
+    public function createOrder(array $orderData,$user)
     {
-        return DB::transaction(function () use ($orderData) {
-            $cartItems = Cart::with('artwork')->where('user_id', Auth::id())->get();
-            if($cartItems->isEmpty())
-            {
-                throw new Exception('Cart is Empty');
-            }
-            $order = Order::create([
-                'user_id' => Auth::id(),
-                'status' => 'pending',
-                'total_amount' => 0,
-                'contact' => $orderData['shipping_address'] ?? $orderData['email'],
-                'shipping_address' => $orderData['shipping_address'],
-                'email' => Auth::user()->email,
+        try{
+                return DB::transaction(function () use ($orderData) {
+                $cartItems = Cart::with('artwork')->where('user_id', Auth::id())->get();
+                if($cartItems->isEmpty())
+                {
+                    throw new Exception('Cart is Empty');
+                }
+                $order = Order::create([
+                    'user_id' => Auth::id(),
+                    'status' => 'pending',
+                    'total_amount' => 0,
+                    'contact' => $orderData['contact'],
+                    'shipping_details' => json_encode($orderData['shipping_details']),
+                    'shipping_method' => $orderData['shipping_method'],
+                ]);
+
+            $totalAmount = 0;
+
+                foreach ($cartItems as $item) {
+                    $this->processOrderItem($order, $item, $totalAmount);
+                }
+
+                $order->update(['total_amount' => $totalAmount]);
+                return $order;
+            });
+        } catch (Exception $e) {
+            // Log the exception for debugging
+            Log::error('Order creation failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'exception' => $e
             ]);
 
-           $totalAmount = 0;
+            // Re-throw the exception to be handled by the controller
+            throw $e;
+        }
 
-            foreach ($cartItems as $item) {
-                $this->processOrderItem($order, $item, $totalAmount);
-            }
-
-            $order->update(['total_amount' => $totalAmount]);
-            return $order;
-        });
     }
 
     protected function processOrderItem(Order $order, Cart $item, float &$totalAmount)
@@ -92,18 +105,22 @@ class OrderService
         ]);
 
         $totalAmount += $item->calculateTotalPrice();
-        $artwork->decrement('stock', $item->quantity);
+        //$artwork->decrement('stock', $item->quantity);
         $item->delete();
     }
 
-    public function UpdateOrder(Order $order, $orderStatus)
+    public function UpdateOrder(Order $order, $orderStatus, $deliveredAt)
     {
         if (!in_array($order->status, ['pending', 'cancelled'])) {
             throw new Exception('This order cannot be updated',400);
         }
-        $order->update([
-            'status' => $orderStatus
-        ]);
+
+        $order->status = $orderStatus;
+        if($deliveredAt)
+        {
+            $order->status = $deliveredAt;
+        }
+        $order->save();
         return $order;
     }
 
@@ -126,5 +143,29 @@ class OrderService
         });
 
         return $order;
+    }
+
+    public function decreaseArtworksStock(Order $order)
+    {
+        return DB::transaction(function () use ($order) {
+            // Fixed typo: orederItems -> orderItems
+            $order->orderItems()->each(function ($item) use ($order) {
+                $artwork = Artwork::find($item->artwork_id);
+
+                // Check if we still have enough stock at payment time
+                if ($artwork->stock < $item->quantity) {
+                    Log::error("Insufficient stock during payment processing", [
+                        'artwork_id' => $item->artwork_id,
+                        'requested' => $item->quantity,
+                        'available' => $artwork->stock,
+                        'order_id' => $order->id
+                    ]);
+                }
+
+                $artwork->decrement('stock', $item->quantity);
+            });
+
+            return true;
+        });
     }
 }
