@@ -22,7 +22,10 @@ class User extends Authenticatable //implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'type'
+        'type',
+        'authorization_code',
+        'authorization',
+        'recurring_transaction'
     ];
 
     /**

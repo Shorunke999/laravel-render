@@ -4,8 +4,6 @@ namespace App\Services;
 
 use App\Models\Cart;
 use App\Models\Artwork;
-use App\Models\ArtworkColorVariant;
-use App\Models\ArtworkSizeVariant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -51,11 +49,9 @@ class CartService
     {
         return Cache::remember($this->cacheKey, now()->addMinutes(10), function () {
             return Cart::where('user_id', Auth::id())
-                ->with([
-                    'artwork',
-                    'colorVariant',
-                    'sizeVariant'
-                ])
+                ->with(
+                    'artwork'
+                )
                 ->get();
         });
     }
@@ -67,7 +63,7 @@ class CartService
     {
         return DB::transaction(function () use ($data) {
             $cartItem = Cart::with('artwork')
-                ->where('id', $data['cart_id'])
+                ->where('id', $data['cart_item_id'])
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
 

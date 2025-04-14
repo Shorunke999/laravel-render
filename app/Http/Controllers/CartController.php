@@ -62,7 +62,7 @@ class CartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error retrieving cart'
+                'message' => 'Error retrieving cart '. $e->getMessage()
             ], 500);
         }
     }
@@ -111,7 +111,7 @@ class CartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error removing item from cart'
+                'message' => 'Error removing item from cart '. $e->getMessage()
             ], 500);
         }
     }

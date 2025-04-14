@@ -219,7 +219,7 @@ class ArtworkController extends Controller
             }
             return response()->json([
                 'message' => 'Artwork Updated Successfully',
-                'artwork' =>  new ArtworkResource($artwork->load(['colorVariants', 'sizeVariants','images']))]
+                'artwork' =>  new ArtworkResource($artwork->load(['images']))]
 
             );
         } catch (ValidationException $e) {

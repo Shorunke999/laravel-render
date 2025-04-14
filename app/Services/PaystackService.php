@@ -31,12 +31,13 @@ class PaystackService
             $order->update([
                 'reference_code'=>$uniqueRef
             ]);
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '. $this->secretKey,
                 'Content-Type' => 'application/json'
             ])->post($this->baseUrl.'transaction/initialize',[
                 'email'=>$email,
-                'amount' => $order->total_amount * 100,
+                'amount' => intval($order->total_amount) * 100,
                 'reference' =>$uniqueRef,
                 'metadata' => $metadata,
                 'callback_url' => $this->callbackUrl,
@@ -119,7 +120,9 @@ class PaystackService
             ]);
             $authorization = json_encode($request->data['authorization'] ?? []);
             $authorizationCode = $request->data['authorization']['authorization_code'];
-
+            Log::info('webhook payload',[
+                $authorization
+            ]);
             $user = User::find($order->user_id);
             if ($user && $user->recurring_transaction) {
                 $user->update([

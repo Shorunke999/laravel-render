@@ -27,15 +27,5 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Artwork::class);
     }
-    // Change to belongsTo since each cart item has one variant
-    public function colorVariant()
-    {
-        return $this->belongsTo(ArtworkColorVariant::class);
-    }
 
-    // Change to belongsTo since each cart item has one variant
-    public function sizeVariant()
-    {
-        return $this->belongsTo(ArtworkSizeVariant::class);
-    }
 }
