@@ -25,7 +25,8 @@ class User extends Authenticatable //implements MustVerifyEmail
         'type',
         'authorization_code',
         'authorization',
-        'recurring_transaction'
+        'recurring_transaction',
+        'phone_number'
     ];
 
     /**
@@ -93,6 +94,10 @@ class User extends Authenticatable //implements MustVerifyEmail
         $this->attributes['type'] = strtolower($value);
     }
 
+    public function wishlist()
+    {
+        return $this->belongsToMany(Artwork::class, 'wishlists')->withTimestamps();
+    }
 
    /* public function cartCount()
     {

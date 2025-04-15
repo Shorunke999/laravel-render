@@ -40,4 +40,10 @@ class Artwork extends Model
         return $this->reviews()
             ->avg('rating');
     }
+
+    public function wishlistedBy()
+{
+    return $this->belongsToMany(User::class, 'wishlists')->withTimestamps();
+}
+
 }

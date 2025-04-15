@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Payment\PaystackController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\CheckAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +76,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
 
+
+     // View wishlist
+     Route::get('/wishlist', [WishlistController::class, 'index']);
+     // Add artwork to wishlist
+     Route::post('/wishlist/{artworkId}', [WishlistController::class, 'store']);
+     // Remove artwork from wishlist
+     Route::delete('/wishlist/{artworkId}', [WishlistController::class, 'destroy']);
+
     //payment
     Route::post('/paystack/checkout',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
     Route::get('/paystack/disable/recurring/charge',[PaystackController::class, 'diableRecurringCharge'])->name('disable.recurring');
@@ -81,3 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/webhook/verify',[PaystackController::class, 'processWebhook']);
+// Password Reset Routes
+Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);

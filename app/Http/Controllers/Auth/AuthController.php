@@ -20,8 +20,10 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
+                'first_name' => 'required|string|max:255',
+                "last_name" => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone_number' => 'required|string|regex:/^\+?[0-9]{10,15}$/',
                 'password' => 'required|string|min:8|confirmed',
                 'type' => 'required|in:customer,admin'
             ]);
@@ -42,8 +44,9 @@ class AuthController extends Controller
             }
 
             $user = User::create([
-                'name' => $validatedData['name'],
+                'name' => $validatedData['first_name'] . ' ' .$validatedData['last_name'],
                 'email' => $validatedData['email'],
+                'phone_number' => $validatedData['phone_number'],
                 'password' => Hash::make($validatedData['password']),
                 //'type' => $validatedData['type']
                 'type' => strtolower($validatedData['type'])
