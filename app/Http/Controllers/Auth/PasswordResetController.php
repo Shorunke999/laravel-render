@@ -42,6 +42,10 @@ class PasswordResetController extends Controller
         }catch(\Exception $e)
         {
             Log::info('Error when forgot Passord ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ],422);
         }
 
     }

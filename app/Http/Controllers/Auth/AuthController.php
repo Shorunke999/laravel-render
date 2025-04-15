@@ -77,8 +77,14 @@ class AuthController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email',
+                'type' => 'in:admin,customer',
                 'password' => 'required',
             ]);
+
+            // Set default type if not provided
+            if (!$request->has('type') || empty($request->type)) {
+                $request->merge(['type' => 'customer']);
+            }
 
             if ($validator->fails()) {
                 return response()->json([
