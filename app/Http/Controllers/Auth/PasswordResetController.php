@@ -12,31 +12,38 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\Log;
 
 class PasswordResetController extends Controller
 {
     public function forgotPassword(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
+        try{
+            $request->validate([
+                'email' => 'required|email|exists:users,email',
+            ]);
 
-        $token = Str::random(64);
+            $token = Str::random(64);
 
-        // Store token in the password_reset_tokens table
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => $token, 'created_at' => Carbon::now()]
-        );
+            // Store token in the password_reset_tokens table
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $request->email],
+                ['token' => $token, 'created_at' => Carbon::now()]
+            );
 
-        // Use defer for sending mail
-        defer(function() use ($request,$token){
-            Mail::to($request->email)->send(new \App\Mail\ResetPasswordMail($token, $request->email));
-        });
+            // Use defer for sending mail
+            defer(function() use ($request,$token){
+                Mail::to($request->email)->send(new \App\Mail\ResetPasswordMail($token, $request->email));
+            });
 
-        return response()->json([
-            'message' => 'Password reset link has been sent to your email.'
-        ], 200);
+            return response()->json([
+                'message' => 'Password reset link has been sent to your email.'
+            ], 200);
+        }catch(\Exception $e)
+        {
+            Log::info('Error when forgot Passord ' . $e->getMessage());
+        }
+
     }
 
     public function resetPassword(Request $request)
