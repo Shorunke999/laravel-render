@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Models\Artwork;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
-
+use Illuminate\Support\Str;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Artwork>
  */
@@ -33,7 +33,7 @@ class ArtworkFactory extends Factory
             // Create artwork images
             $artwork->images()->createMany(
                 collect(range(1, $this->faker->numberBetween(1, 3)))
-                    ->map(fn () => ['image_url' => $this->faker->imageUrl()])
+                    ->map(fn () => ['image_url' => 'https://picsum.photos/seed/'. Str::random(5).'/640/640'])
                     ->toArray()
             );
         });

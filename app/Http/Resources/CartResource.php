@@ -13,12 +13,6 @@ class CartResource extends JsonResource
             'id' => $this->id,
             'artwork' => new ArtworkResource($this->whenLoaded('artwork')),
             'quantity' => $this->quantity,
-            'color_variant' => $this->whenLoaded('colorVariant', function () {
-               return new ArtworkColorVariantResource($this->colorVariant);
-            }),
-            'size_variant' => $this->whenLoaded('sizeVariant', function () {
-                return new ArtworkSizeVariantResource($this->sizeVariant);
-            }),
             'item_price' => $this->calculateItemPrice(),
             'total_item_price' => $this->calculateTotalPrice(),
         ];

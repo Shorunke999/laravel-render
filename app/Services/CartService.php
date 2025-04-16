@@ -50,7 +50,8 @@ class CartService
         return Cache::remember($this->cacheKey, now()->addMinutes(10), function () {
             return Cart::where('user_id', Auth::id())
                 ->with(
-                    'artwork'
+                    'artwork',
+                    'artwork.images'
                 )
                 ->get();
         });
