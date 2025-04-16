@@ -49,24 +49,40 @@ class OrderController extends Controller
                 'contact' => 'required|email',
                 'shipping_method' => 'required|in:standard,express',
                 'recurring' => 'required|boolean',
+                'shipping_as_billing' => 'nullable|boolean',
                 'metadata' => "nullable|array"
             ]);
             $user = Auth::user();
+
+            if(!isset($validatedData['metadata']))
+            {
+                $metadata = [];
+            }else{
+                $metadata = $validatedData['metadata'];
+            }
+
             if(isset($validatedData['recurring']))
             {
                 $user->recurring_transaction = $validatedData['recurring'];
                 $user->save();
             }
+            if(isset($validatedData['shipping_as_billing']) && $validatedData['shipping_as_billing'])
+            {
+                $metadata['address'] = $validatedData['shipping_details']['address'];
+                $metadata['name'] = $validatedData['shipping_details']['first_name'] . ' ' .$validatedData['shipping_details']['last_name'];
+                $metadata['contact'] = $validatedData['contact'];
+
+            }
             $order = $this->orderService->createOrder($validatedData,$user);
             $paystackPayment = new PaystackService();
             if($user->recurring_transaction && $user->authorization_code)
             {
-                $Payment = $paystackPayment->chargeUserRecurring($user,$order,$validatedData['metadata'] ?? []);
+                $Payment = $paystackPayment->chargeUserRecurring($user,$order,$metadata);
                 $message = "Order created and Charging using recurring card details successfull";
             }
             else
             {
-                $Payment = $paystackPayment->intializePayment($user,$order,$validatedData['metadata'] ?? []);
+                $Payment = $paystackPayment->intializePayment($user,$order,$metadata);
                 $message = "Order created successfully and will be redirected now";
             }
             if(!$Payment['status'])

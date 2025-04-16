@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Payment\PaystackController;
 use App\Http\Controllers\ReviewController;
@@ -87,6 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //payment
     Route::post('/paystack/checkout',[PaystackController::class, 'initiateTransaction'])->name('payment.process');
     Route::get('/paystack/disable/recurring/charge',[PaystackController::class, 'diableRecurringCharge'])->name('disable.recurring');
+
+    //feedback
+    Route::post('/feedback',[FeedbackController::class, 'store'])->name('feedback');
 
 });
 
