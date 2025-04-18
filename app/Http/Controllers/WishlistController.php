@@ -17,6 +17,13 @@ class WishlistController extends Controller
         try {
             $wishlist = Auth::user()->wishlist()->with('images')->get();
 
+            if($wishlist->isEmpty())
+            {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Wishlist Is Empty.',
+                ]);
+            }
             return response()->json([
                 'status' => true,
                 'message' => 'Wishlist retrieved successfully.',
