@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class PasswordResetController extends Controller
 {
-    public function forgotPassword(Request $request)
+    /*public function forgotPassword(Request $request)
     {
         try{
             $request->validate([
@@ -48,7 +49,42 @@ class PasswordResetController extends Controller
             ],422);
         }
 
+    }*/
+    public function forgotPassword(Request $request)
+{
+    try {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $token = Str::random(64);
+
+        // Store token in the password_reset_tokens table
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            ['token' => $token, 'created_at' => Carbon::now()]
+        );
+
+        // Create the email service instance
+        $emailService = new EmailService();
+
+        // Use defer for sending mail
+        defer(function() use ($request, $token, $emailService) {
+            $mailable = new \App\Mail\ResetPasswordMail($token, $request->email);
+            $emailService->send($mailable, $request->email);
+        });
+
+        return response()->json([
+            'message' => 'Password reset link has been sent to your email.'
+        ], 200);
+    } catch(\Exception $e) {
+        Log::info('Error when forgot Password ' . $e->getMessage());
+        return response()->json([
+            'status' => false,
+            'message' => $e->getMessage()
+        ], 422);
     }
+}
 
     public function resetPassword(Request $request)
     {
