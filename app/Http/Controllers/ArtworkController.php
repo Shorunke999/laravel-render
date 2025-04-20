@@ -269,7 +269,7 @@ class ArtworkController extends Controller
             $artworks = Artwork::where('name', 'like', "%{$query}%")
                 ->orWhere('artist', 'like', "%{$query}%")
                 ->orWhere('description', 'like', "%{$query}%")
-                ->with('category')
+                ->with(['category','images'])
                 ->paginate(12);
 
             return response()->json([

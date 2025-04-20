@@ -44,15 +44,12 @@ class EmailService
      * @param string $recipient Recipient email address
      * @return bool Whether the email was sent successfully
      */
-    private function sendViaMailtrapApi(Mailable $mailable, string $recipient)
+    private function sendViaMailtrapApi(Mailable $mailable, string $recipient )
     {
         $mailtrapApiToken = env('MAILTRAP_API_TOKEN');
         $mailtrapInboxId = env('MAILTRAP_INBOX_ID');
 
-        if (!$mailtrapApiToken || !$mailtrapInboxId) {
-            Log::error('Mailtrap API configuration missing');
-            return false;
-        }
+
 
         // Render the mailable to get its content
         $renderedMailable = $mailable->render();
@@ -67,9 +64,17 @@ class EmailService
         {
             $mailtrapInboxId = env('MAILTRAP_INBOX_ID');
             $url = "https://sandbox.api.mailtrap.io/api/send/{$mailtrapInboxId}";
+            if (!$mailtrapApiToken || !$mailtrapInboxId) {
+                Log::error('Mailtrap API configuration missing');
+                return false;
+            }
         }
         else
         {
+            if (!$mailtrapApiToken) {
+                Log::error('Mailtrap API Token Is missing');
+                return false;
+            }
             $url = "https://send.api.mailtrap.io/api/send";
         }
 
