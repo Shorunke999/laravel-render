@@ -73,6 +73,8 @@ class ArtworkController extends Controller
             $artworks = $query->paginate($request->input('per_page', 12));
 
             return response()->json([
+                'status' => true,
+                'message' =>  "Artwork fetched successfully",
                 'artworks'=>ArtworkResource::collection($artworks)
             ],200);
         } catch (Exception $e)
