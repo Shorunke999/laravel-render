@@ -39,22 +39,18 @@ class CartService
             }
 
             $cartItem->save();
-            $this->clearCache();
 
             return $cartItem->load('artwork');
         });
     }
 
     public function getCartItems()
-    {
-        return Cache::remember($this->cacheKey, now()->addMinutes(10), function () {
-            return Cart::where('user_id', Auth::id())
+    { return Cart::where('user_id', Auth::id())
                 ->with(
                     'artwork',
                     'artwork.images'
                 )
                 ->get();
-        });
     }
 
     /**
@@ -74,7 +70,6 @@ class CartService
                 'quantity' => $data['quantity'],
             ]);
 
-            $this->clearCache();
 
             return $cartItem->load('artwork');
         });
@@ -91,7 +86,6 @@ class CartService
                 ->firstOrFail();
 
             $cartItem->delete();
-            $this->clearCache();
         });
     }
 
@@ -103,7 +97,6 @@ class CartService
         return DB::transaction(function () {
             $count = Cart::where('user_id', Auth::id())->count();
             Cart::where('user_id', Auth::id())->delete();
-            $this->clearCache();
             return $count;
         });
     }
@@ -127,13 +120,5 @@ class CartService
             throw new Exception("Insufficient stock for {$artwork->name}. Available: {$artwork->stock}");
         }
 
-    }
-
-    /**
-     * Clear cart cache
-     */
-    private function clearCache(): void
-    {
-        Cache::forget($this->cacheKey);
     }
 }
