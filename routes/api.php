@@ -47,9 +47,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
         Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
 
+         //Order Update
+        Route::post('/orders/{order}/update', [OrderController::class, 'update']);
     });
-  //Order Update
-  Route::post('/orders/{order}/update', [OrderController::class, 'update']);
+
 
 
     // Get cart contents
