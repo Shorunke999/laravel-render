@@ -219,23 +219,7 @@ class ArtworkController extends Controller
                 'artwork' =>  new ArtworkResource($artwork->load(['images']))]
 
             );
-        } catch (ValidationException $e) {
-            Log::info('error',[
-                'message' => $e->getMessage()
-            ]);
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (ModelNotFoundException $e) {
-            Log::info('error',[
-                'message' => $e->getMessage()
-            ]);
-            return response()->json([
-                'message' => 'Artwork not found',
-                'error' => $e->getMessage()
-            ], 404);
-        } catch (Exception $e) {
+        }catch (Exception $e) {
             Log::info('error',[
                 'message' => $e->getMessage()
             ]);
