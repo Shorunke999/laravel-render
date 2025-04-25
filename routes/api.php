@@ -102,7 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/feedback',[FeedbackController::class, 'store'])->name('feedback');
 
 });
-
+Route::post('/newsletter/subscribe', [AuthController::class, 'subscribeNewsletter']);
 Route::post('/webhook/verify',[PaystackController::class, 'processWebhook']);
 // Password Reset Routes
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);

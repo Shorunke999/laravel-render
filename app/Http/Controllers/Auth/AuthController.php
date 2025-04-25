@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\UtilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -157,4 +158,27 @@ class AuthController extends Controller
             "user"=> new UserResource($request->user())
         ]);
     }
+
+    public function subscribeNewsletter(Request $request)
+    {
+        try {
+            $request->validate([
+                'email' => 'required|email'
+            ]);
+
+            $utilityInstance = new UtilityService();
+            $utilityInstance->subscribeNewsletter($request->email);
+
+            return response()->json([
+                'message' => 'Successfully subscribed to the newsletter!',
+                'status' => true
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => false
+            ], $e->getCode() > 0 ? $e->getCode() : 500);
+        }
+    }
+
 }
