@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 
 class UpdateArtworkRequest extends FormRequest
 {
@@ -21,6 +22,7 @@ class UpdateArtworkRequest extends FormRequest
      */
     public function rules(): array
     {
+        Log::info('in the store artwork request class');
         return [
             'name' => 'sometimes|string|max:255',
             //'category_id' => 'sometimes|exists:categories,id',

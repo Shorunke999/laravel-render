@@ -89,6 +89,7 @@ class ArtworkController extends Controller
     public function store(StoreArtworkRequest $request): JsonResponse
     {
         try {
+
             $validatedData = $request->validated();
 
             // Create artwork
@@ -175,12 +176,14 @@ class ArtworkController extends Controller
     public function update(UpdateArtworkRequest $request, Artwork $artwork): JsonResponse
     {
         try {
+            Log::info('in the update artwork controller');
             $artwork->update($request->validated());
-
+            Log::info('Validation completed');
 
             $cloudinaryService = new CloudinaryService();
             // Remove old images before adding new ones
             if ($request->hasFile('images')) {
+                Log::info('images processing');
                 // Delete old images from storage
                 foreach ($artwork->images as $oldImage) {
 
