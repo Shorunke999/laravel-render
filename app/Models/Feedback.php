@@ -10,5 +10,7 @@ class Feedback extends Model
         'name',
         'email',
         'message',
+        'story_title',
+        'read'
     ];
 }

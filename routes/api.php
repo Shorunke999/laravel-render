@@ -49,6 +49,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
          //Order Update
         Route::post('/orders/{order}/update', [OrderController::class, 'update']);
+
+        // Admin Stats
+        Route::get('/admin/stats', [FeedbackController::class, 'getAdminStats']);
+
+        // Feedback listing
+        Route::get('/feedbacks', [FeedbackController::class, 'index']);
+        Route::put('/feedbacks/{feedback}', [FeedbackController::class,'update']);
+
     });
 
 
