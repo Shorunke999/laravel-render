@@ -17,9 +17,9 @@ class ArtworkResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'category' => $this->whenLoaded('category', function () {
-                return new CategoryResource($this->category);
-            }),
+            //'category' => $this->whenLoaded('category', function () {
+              //  return new CategoryResource($this->category);
+            //}),
             'artist' => $this->artist,
             'base_price' => $this->base_price,
             'description' => $this->description,
@@ -32,9 +32,9 @@ class ArtworkResource extends JsonResource
             'average_rating' => $this->whenLoaded('reviews', function () {
                 return $this->reviews->avg('rating');
             }),
-            'reviews_count' => $this->whenLoaded('reviews', function () {
-                return $this->reviews->count();
-            }),
+            //'reviews_count' => $this->whenLoaded('reviews', function () {
+               // return $this->reviews->count();
+           // }),
         ];
     }
 }

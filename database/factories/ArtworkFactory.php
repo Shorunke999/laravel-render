@@ -20,7 +20,7 @@ class ArtworkFactory extends Factory
     {
         return [
             'name' => $this->faker->words(3, true),
-            'category_id' => Category::factory(),
+            //'category_id' => Category::factory(),
             'base_price' => $this->faker->randomFloat(2, 10, 500),
             'description' => $this->faker->optional()->paragraph(),
             'stock' => $this->faker->numberBetween(0, 100),

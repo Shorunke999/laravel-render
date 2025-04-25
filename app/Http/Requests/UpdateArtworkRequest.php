@@ -23,7 +23,7 @@ class UpdateArtworkRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'category_id' => 'sometimes|exists:categories,id',
+            //'category_id' => 'sometimes|exists:categories,id',
             'artist' => 'sometimes|string|max:255',
             'base_price' => 'sometimes|numeric|min:0',
             'description' => 'sometimes|string',

@@ -23,7 +23,7 @@ class StoreArtworkRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
+            //'category_id' => 'required|exists:categories,id',
             'artist' => 'required|string|max:255',
             'base_price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
@@ -31,7 +31,7 @@ class StoreArtworkRequest extends FormRequest
 
             // Multiple image uploads
             'images' => 'required|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4098'
 
         ];
     }

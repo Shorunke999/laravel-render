@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
 
         // Generate users, categories, and artworks
         $users = User::factory(10)->create();
-        $categories = Category::factory(5)->create();
+       // $categories = Category::factory(5)->create();
         $artworks = Artwork::factory(20)->create();
 
         // Simulate carts

@@ -26,12 +26,6 @@ class ArtworkController extends Controller
         try {
             $query = Artwork::query();
 
-            // Filtering
-            if ($request->has('category')) {
-                $query->whereHas('category', function ($q) use ($request) {
-                    $q->where('slug', $request->input('category'));
-                });
-            }
 
             // Price range filter
             if ($request->has('min_price')) {
@@ -67,7 +61,7 @@ class ArtworkController extends Controller
             }
 
             // Include relationships
-            $query->with(['category','images']);
+            $query->with(['images']);
 
             // Pagination
             $artworks = $query->paginate($request->input('per_page', 12));
@@ -119,7 +113,7 @@ class ArtworkController extends Controller
 
             return response()->json([
                 'message' => 'Artwork created successfully',
-                'artwork' => new ArtworkResource($artwork->load(['category','images'])),
+                'artwork' => new ArtworkResource($artwork->load(['images'])),
             ], 201);
 
         } catch (ValidationException $e) {
@@ -144,7 +138,7 @@ class ArtworkController extends Controller
     public function show(Artwork $artwork): JsonResponse
     {
         try {
-            $relatedArtworks = Artwork::where('category_id', $artwork->category_id)
+            $relatedArtworks = Artwork::inRandomOrder()
             ->where('id', '!=', $artwork->id)
             ->with('images')
             ->latest()
@@ -152,8 +146,6 @@ class ArtworkController extends Controller
             ->get();
 
         $artwork->load([
-            'category',
-            'reviews' => fn ($query) => $query->latest()->limit(5),
             'images'
         ]);
 
@@ -269,7 +261,7 @@ class ArtworkController extends Controller
             $artworks = Artwork::where('name', 'like', "%{$query}%")
                 ->orWhere('artist', 'like', "%{$query}%")
                 ->orWhere('description', 'like', "%{$query}%")
-                ->with(['category','images'])
+                ->with(['images'])
                 ->paginate(12);
 
             return response()->json([
