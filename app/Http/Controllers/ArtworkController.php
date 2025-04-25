@@ -289,6 +289,7 @@ class ArtworkController extends Controller
             // Delete the image from Cloudinary using your service
             $cloudinaryService->delete($publicId);
         }
+        $artwork->carts()->delete();
         $artwork->delete();
         return response()->json([
             'message' => $artworkName . " Artwork has been deleted successfully"
