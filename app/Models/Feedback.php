@@ -11,6 +11,7 @@ class Feedback extends Model
         'email',
         'message',
         'story_title',
+        'type',
         'read'
     ];
 }

@@ -15,13 +15,18 @@ class FeedbackController extends Controller
      */
     public function index(Request $request)
     {
+
         $query =  Feedback::query();
+
         // Price range filter
         if ($request->has('read') ) {
             $query->where('read', $request->input('read'));
         }
         if ($request->has('story_title') ) {
             $query->where('story_title', $request->input('story_title'));
+        }
+        if ($request->has('type') ) {
+            $query->where('type', $request->input('type'));
         }
         $feedbacks = $query->paginate($request->input('per_page', 12));
 
@@ -45,26 +50,29 @@ class FeedbackController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'first_name' => 'required|string',
-                'last_name' => 'required|string',
+                'name' => 'required|string',
                 'email' => 'required|email',
                 'message' => 'required|string|max:10000',
                 'story_title' => 'string',
+                'type' => 'required|in:comment,feedback'
             ]);
 
             Feedback::create([
-                'name' => $validatedData['first_name']. ' '.$validatedData['last_name'],
+                'name' => $validatedData['name'],
                 'email' => $validatedData['email'],
                 'message' => $validatedData['message'],
-                'story_title' => $validatedData['story_title'],
+                'story_title' => $validatedData['story_title'] ?? null,
+                'type' => $validatedData['type']
             ]);
 
-            // Use defer for sending mail
-           /* defer(function() use ($request) {
-                $mailable = new \App\Mail\ResetPasswordMail($token, $request->email);
-                $emailService->send($mailable, $request->email);
-            });*/
-
+            if($validatedData['type'] == 'feedback')
+            {
+                // Use defer for sending mail
+            /* defer(function() use ($request) {
+                    $mailable = new \App\Mail\ResetPasswordMail($token, $request->email);
+                    $emailService->send($mailable, $request->email);
+                });*/
+            }
             return response()->json([
                 'status' => true,
                 'message' => "Feedback save successfully. Thanks for reaching out"

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email');
             $table->text('message');
             $table->string('story_title')->nullable();
+            $table->enum('type',['comment','feedback'])->default('comment');
             $table->boolean('read')->default(false);
             $table->timestamps();
         });
