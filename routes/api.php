@@ -9,6 +9,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Payment\PaystackController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\UtilityController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\CheckAdmin;
 use Illuminate\Support\Facades\Route;
@@ -44,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Artwork actions for Admin only
         Route::post('/artwork', [ArtworkController::class, 'store']);
-        Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
+        Route::put('/artworks/{artwork}', [UtilityController::class, 'update']);
         Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
 
          //Order Update
