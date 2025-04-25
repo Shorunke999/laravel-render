@@ -2,6 +2,9 @@
 echo "Running composer"
 composer install --no-dev --working-dir=/var/www/html
 
+echo "Optimize app"
+php artisan optimize:clear
+
 echo "Caching config..."
 php artisan config:cache
 
