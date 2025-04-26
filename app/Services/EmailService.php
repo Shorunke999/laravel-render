@@ -19,9 +19,10 @@ class EmailService
      */
     public function send(Mailable $mailable, string $recipient)
     {
+        Log::info('in the email service');
         // Check if SMTP is enabled in environment
-        $useSmtp = filter_var(env('USE_SMTP', true), FILTER_VALIDATE_BOOLEAN);
-
+        $useSmtp = env('USE_SMTP', true);
+        Log::info('use stmp '. $useSmtp);
         try {
             if ($useSmtp) {
                 // Use Laravel's built-in Mail facade with SMTP configuration

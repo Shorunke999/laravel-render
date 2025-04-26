@@ -116,6 +116,30 @@ class FeedbackController extends Controller
             'message' => "Marked As Read"
            ],200);
     }
+
+    public function markAllAsRead(Request $request)
+    {
+        try {
+            $request->validate([
+                'type' => 'required|in:comment,feedback'
+            ]);
+            Feedback::where('read', false)
+            ->where('type',$request->type)
+            ->update(['read' => true]);
+
+            return response()->json([
+                'status' => true,
+                'message' => "All feedback marked as read"
+            ], 200);
+        } catch (\Exception $th) {
+            return response()->json([
+                'status' => false,
+                'message' => "Unable to mark all as read.. " . $th->getMessage()
+            ], 422);
+        }
+
+    }
+
     /**
      * Remove the specified resource from storage.
      */

@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Feedback listing
         Route::get('/feedbacks', [FeedbackController::class, 'index']);
         Route::put('/feedbacks/{feedback}', [FeedbackController::class,'update']);
+        Route::post('/feedback/mark-all-read', [FeedbackController::class, 'markAllAsRead']);
+
 
     });
 
