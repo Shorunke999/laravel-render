@@ -45,14 +45,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Artwork actions for Admin only
         Route::post('/artwork', [ArtworkController::class, 'store']);
-        Route::put('/artworks/{artwork}', [UtilityController::class, 'update']);
+        Route::put('/artworks/{artwork}', [ArtworkController::class, 'update']);
         Route::delete('/artworks/{artwork}', [ArtworkController::class, 'destroy']);
 
          //Order Update
         Route::post('/orders/{order}/update', [OrderController::class, 'update']);
 
         // Admin Stats
-        Route::get('/admin/stats', [FeedbackController::class, 'getAdminStats']);
+        Route::get('/admin/stats', [UtilityController::class, 'getAdminStats']);
 
         // Feedback listing
         Route::get('/feedbacks', [FeedbackController::class, 'index']);
@@ -103,7 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/feedback',[FeedbackController::class, 'store'])->name('feedback');
 
 });
-Route::post('/newsletter/subscribe', [AuthController::class, 'subscribeNewsletter']);
+Route::post('/newsletter/subscribe', [UtilityController::class, 'subscribeNewsletter']);
 Route::post('/webhook/verify',[PaystackController::class, 'processWebhook']);
 // Password Reset Routes
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);

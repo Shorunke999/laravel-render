@@ -159,26 +159,5 @@ class AuthController extends Controller
         ]);
     }
 
-    public function subscribeNewsletter(Request $request)
-    {
-        try {
-            $request->validate([
-                'email' => 'required|email'
-            ]);
-
-            $utilityInstance = new UtilityService();
-            $utilityInstance->subscribeNewsletter($request->email);
-
-            return response()->json([
-                'message' => 'Successfully subscribed to the newsletter!',
-                'status' => true
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'status' => false
-            ], $e->getCode() > 0 ? $e->getCode() : 500);
-        }
-    }
 
 }

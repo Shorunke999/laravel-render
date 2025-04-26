@@ -116,20 +116,6 @@ class FeedbackController extends Controller
             'message' => "Marked As Read"
            ],200);
     }
-
-    public function getAdminStats()
-    {
-        $totalArtworks = Artwork::count();
-
-        $pendingOrdersCount = Order::whereIn('status', ['pending', 'shipped', 'processing'])->count();
-        $deliveredOrdersCount = Order::where('status', 'delivered')->count();
-
-        return response()->json([
-            'total_artworks'    => $totalArtworks,
-            'pending_orders'    => $pendingOrdersCount,
-            'delivered_orders'  => $deliveredOrdersCount,
-        ]);
-    }
     /**
      * Remove the specified resource from storage.
      */
