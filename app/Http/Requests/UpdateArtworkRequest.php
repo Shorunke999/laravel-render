@@ -12,7 +12,7 @@ class UpdateArtworkRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,7 +25,6 @@ class UpdateArtworkRequest extends FormRequest
         Log::info('in the store artwork request class');
         return [
             'name' => 'sometimes|string|max:255',
-            //'category_id' => 'sometimes|exists:categories,id',
             'artist' => 'sometimes|string|max:255',
             'base_price' => 'sometimes|numeric|min:0',
             'description' => 'sometimes|string',
