@@ -64,7 +64,8 @@ class ArtworkController extends Controller
             $query->with(['images']);
 
             // Pagination
-            $artworks = $query->paginate($request->input('per_page', 12));
+           // $artworks = $query->paginate($request->input('per_page', 12));
+           $artworks = $query->get();
 
             return response()->json([
                 'status' => true,
