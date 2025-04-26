@@ -103,6 +103,7 @@ class PasswordResetController extends Controller
 
         if (!$tokenData) {
             return response()->json([
+                'status' => 'false',
                 'message' => 'Invalid token!'
             ], 422);
         }
@@ -112,6 +113,7 @@ class PasswordResetController extends Controller
         if (Carbon::now()->diffInMinutes($createdAt) > 60) {
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
             return response()->json([
+                'status' => false,
                 'message' => 'Token has expired!'
             ], 422);
         }
@@ -125,6 +127,7 @@ class PasswordResetController extends Controller
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return response()->json([
+            'status'=>true,
             'message' => 'Password reset successfully!'
         ], 200);
     }
