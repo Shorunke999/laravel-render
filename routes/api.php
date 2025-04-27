@@ -12,8 +12,20 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UtilityController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\CheckAdmin;
+use App\Http\Middleware\CheckPayment;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware([CheckPayment::class])->group(function(){
+     /* Route::get('/testing_deployment',function()
+    {
+        return 'deployment successfull';
+    });
+
+   Route::get('/run-migrations', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    return 'Migrations ran successfully!';
+});*/
     Route::get('/login', [AuthController::class, 'Unauthorized'])->name('login');
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
@@ -110,3 +122,5 @@ Route::post('/webhook/verify',[PaystackController::class, 'processWebhook']);
 // Password Reset Routes
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+
+});
