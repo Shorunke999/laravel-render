@@ -25,6 +25,11 @@ use Illuminate\Support\Facades\Route;
     return 'Migrations ran successfully!';
 });*/
 
+Route::get('/run-migrations', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    return 'Migrations ran successfully!';
+});
+
 Route::get('/login', [AuthController::class, 'Unauthorized'])->name('login');
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
